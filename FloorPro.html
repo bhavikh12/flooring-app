@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#CC5500">
+<title>FloorPro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --o: #D4500A;
+  --o2: #E86420;
+  --o3: #FF7A35;
+  --o-pale: #FFF4EE;
+  --o-border: #FFD4B8;
+  --ink: #1C1917;
+  --ink2: #57534E;
+  --ink3: #A8A29E;
+  --surface: #FAFAF9;
+  --card: #FFFFFF;
+  --line: #E7E5E4;
+  --line2: #F5F4F3;
+  --danger: #DC2626;
+  --r: 10px;
+  --r-sm: 6px;
+  --r-lg: 16px;
+  --nav: 60px;
+  --ff: 'Outfit', sans-serif;
+  --fm: 'JetBrains Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--ff);background:var(--surface);color:var(--ink);max-width:430px;margin:0 auto;min-height:100vh;overflow-x:hidden}
+
+.view{display:none;flex-direction:column;min-height:100vh}
+.view.active{display:flex}
+
+.hdr{position:sticky;top:0;z-index:90;background:var(--card);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.hdr-title{font-size:18px;font-weight:700;flex:1;letter-spacing:-0.3px}
+.back-btn{width:36px;height:36px;border-radius:50%;background:var(--line2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:16px;flex-shrink:0}
+.back-btn:active{background:var(--line)}
+
+.fab{width:40px;height:40px;border-radius:50%;background:var(--o);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:300;flex-shrink:0;box-shadow:0 2px 8px rgba(212,80,10,.3);transition:transform .12s}
+.fab:active{transform:scale(.91)}
+
+.body{flex:1;overflow-y:auto;padding-bottom:calc(var(--nav) + 20px)}
+
+.search-wrap{padding:10px 16px 6px}
+.search-row{display:flex;gap:8px}
+.search-box{flex:1;display:flex;align-items:center;gap:8px;background:var(--line2);border:1px solid var(--line);border-radius:var(--r);padding:9px 12px}
+.search-box input{flex:1;border:none;background:transparent;font-family:var(--ff);font-size:14px;color:var(--ink);outline:none}
+.search-box input::placeholder{color:var(--ink3)}
+
+.list-row{display:flex;align-items:center;padding:13px 16px;background:var(--card);border-bottom:1px solid var(--line2);gap:12px;cursor:pointer;min-height:52px}
+.list-row:active{background:var(--line2)}
+.list-row-icon{width:36px;height:36px;border-radius:8px;background:var(--o-pale);border:1px solid var(--o-border);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.list-row-body{flex:1;min-width:0}
+.list-row-title{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-row-meta{font-size:12px;color:var(--ink3);margin-top:1px}
+.chevron{color:var(--ink3);font-size:13px}
+.more-btn{width:28px;height:28px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--ink3);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.more-btn:active{background:var(--line)}
+
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 8px}
+.sec-title{font-size:16px;font-weight:700;letter-spacing:-0.2px}
+
+.area-card{display:flex;align-items:center;padding:11px 16px;background:var(--card);border-bottom:1px solid var(--line2);gap:10px;cursor:pointer}
+.area-card:active{background:var(--line2)}
+.area-thumb{width:44px;height:44px;border-radius:8px;background:var(--o-pale);border:1px solid var(--o-border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden}
+.area-thumb img{width:100%;height:100%;object-fit:cover}
+.area-body{flex:1;min-width:0}
+.area-name{font-size:14px;font-weight:600}
+.area-meta{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+.tag{display:inline-flex;padding:1px 7px;border-radius:20px;font-size:11px;font-weight:600;background:var(--o-pale);color:var(--o);border:1px solid var(--o-border)}
+.tag-gray{background:var(--line2);color:var(--ink3);border:1px solid var(--line);display:inline-flex;padding:1px 7px;border-radius:20px;font-size:11px;font-weight:500}
+.m2-val{font-family:var(--fm);font-size:13px;font-weight:600;color:var(--o)}
+
+.bom-list{padding:0 16px}
+.bom-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line2);font-size:13px}
+.bom-row:last-child{border-bottom:none}
+.bom-val{font-family:var(--fm);font-weight:600}
+
+.calc-block{background:var(--card);border-radius:var(--r-lg);margin:0 12px 12px;border:1px solid var(--line);overflow:hidden}
+.calc-hdr{padding:11px 14px 9px;border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:7px}
+.calc-hdr-ico{font-size:15px}
+.calc-hdr-t{font-size:13px;font-weight:700;flex:1}
+.calc-body{padding:10px 14px}
+
+.inp-row{display:flex;align-items:center;gap:8px;padding:4px 0}
+.inp-row label{font-size:12px;color:var(--ink2);flex:1;line-height:1.3}
+.inp-row input{width:86px;padding:6px 8px;text-align:right;border:1px solid var(--line);border-radius:var(--r-sm);font-family:var(--fm);font-size:13px;background:var(--line2);color:var(--ink);outline:none}
+.inp-row input:focus{border-color:var(--o);background:var(--card)}
+
+.res-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line2);font-size:13px}
+.res-row:last-child{border-bottom:none}
+.res-label{color:var(--ink2)}
+.res-val{font-family:var(--fm);font-weight:600;color:var(--o);font-size:13px}
+
+.cost-tbl{width:100%;border-collapse:collapse}
+.cost-tbl th{padding:5px 3px;text-align:right;font-size:9px;text-transform:uppercase;letter-spacing:.3px;color:var(--ink3);border-bottom:2px solid var(--line);font-weight:600}
+.cost-tbl th:first-child{text-align:left}
+.cost-tbl td{padding:6px 3px;text-align:right;font-family:var(--fm);font-size:11px;border-bottom:1px solid var(--line2);color:var(--ink2)}
+.cost-tbl td:first-child{text-align:left;font-family:var(--ff);font-size:12px;font-weight:500;color:var(--ink)}
+.cost-tbl tr.tot td{font-weight:700;color:var(--o);border-top:2px solid var(--o-border);border-bottom:none;padding-top:8px;font-size:12px}
+.cost-tbl tr.tot td:first-child{color:var(--ink)}
+
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:var(--nav);background:var(--card);border-top:1px solid var(--line);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:transparent;color:var(--ink3);font-family:var(--ff);font-size:10px;font-weight:500;cursor:pointer;padding-top:6px}
+.bnav-item.on{color:var(--o)}
+.bnav-item svg{width:19px;height:19px}
+
+.overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(28,25,23,.5);backdrop-filter:blur(2px);align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.sheet{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:430px;max-height:93vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)}
+.sheet-handle{width:32px;height:3px;background:var(--line);border-radius:2px;margin:10px auto 0}
+.sheet-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 8px}
+.sheet-title{font-size:17px;font-weight:700}
+.sheet-close{width:27px;height:27px;border-radius:50%;border:none;background:var(--line2);cursor:pointer;font-size:13px;color:var(--ink2)}
+.sheet-body{padding:0 18px 24px}
+
+.fg{margin-bottom:13px}
+.flabel{display:block;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.finput,.fselect{width:100%;padding:11px 12px;background:var(--line2);border:1px solid var(--line);border-radius:var(--r);font-family:var(--ff);font-size:14px;color:var(--ink);outline:none;appearance:none}
+.finput:focus,.fselect:focus{border-color:var(--o);background:var(--card)}
+.fselect-wrap{position:relative}
+.fselect-wrap::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--ink3);font-size:12px}
+
+.multi-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.multi-add{width:26px;height:26px;border-radius:50%;background:var(--o);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px}
+.multi-list{display:flex;flex-direction:column;gap:5px}
+.multi-row{display:flex;align-items:center;gap:6px;background:var(--line2);border:1px solid var(--line);border-radius:var(--r-sm);padding:3px 3px 3px 10px}
+.multi-row input{flex:1;border:none;background:transparent;font-family:var(--fm);font-size:14px;color:var(--ink);outline:none;padding:6px 0}
+.multi-del{width:28px;height:28px;border-radius:5px;border:none;background:transparent;cursor:pointer;color:var(--ink3);font-size:14px}
+.multi-del:active{color:var(--danger)}
+
+.btn{padding:12px 20px;border-radius:var(--r);border:none;font-family:var(--ff);font-size:14px;font-weight:600;cursor:pointer}
+.btn:active{opacity:.85}
+.btn-p{background:var(--o);color:#fff}
+.btn-s{background:var(--line2);color:var(--ink);border:1px solid var(--line)}
+.btn-row{display:flex;gap:8px;margin-top:16px}
+.btn-row .btn{flex:1}
+
+.addr-field-wrap{display:flex;gap:8px}
+.addr-search-btn{height:40px;padding:0 14px;background:var(--o);border:none;border-radius:var(--r);color:#fff;font-family:var(--ff);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.addr-search-btn:active{opacity:.85}
+.addr-search-btn:disabled{opacity:.6}
+.addr-results{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:6px;box-shadow:0 4px 16px rgba(0,0,0,.08);display:none}
+.addr-results.open{display:block}
+.addr-item{padding:10px 13px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--line2)}
+.addr-item:last-child{border-bottom:none}
+.addr-item:active{background:var(--line2)}
+.addr-main{font-weight:600}
+.addr-sub{font-size:11px;color:var(--ink3);margin-top:1px}
+
+.ctx{position:fixed;z-index:300;background:var(--card);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.14);border:1px solid var(--line);min-width:150px;overflow:hidden;display:none}
+.ctx.open{display:block}
+.ctx-item{padding:11px 14px;cursor:pointer;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px}
+.ctx-item:active{background:var(--line2)}
+.ctx-item.red{color:var(--danger)}
+.ctx-div{height:1px;background:var(--line)}
+
+.photo-lbl{display:flex;align-items:center;gap:8px;padding:11px 12px;background:var(--line2);border:1px dashed var(--line);border-radius:var(--r);cursor:pointer;color:var(--ink3);font-size:13px}
+#photoInput{display:none}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.photo-thumb{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--line2);border:1px solid var(--line)}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-del{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.55);border:none;color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+
+.empty{display:flex;flex-direction:column;align-items:center;padding:48px 20px;text-align:center;gap:8px;color:var(--ink3)}
+.empty-ico{font-size:36px;opacity:.5}
+.empty-t{font-size:15px;font-weight:600;color:var(--ink2)}
+.empty-s{font-size:13px;line-height:1.5}
+
+.toast{position:fixed;bottom:calc(var(--nav) + 10px);left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:#fff;padding:8px 16px;border-radius:30px;font-size:13px;font-weight:500;opacity:0;transition:all .2s;z-index:999;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.div8{height:8px;background:var(--line2)}
+.div4{height:4px;background:var(--line2)}
+
+/* Wastage blocks */
+.waste-block{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.waste-block-title{padding:12px 14px 4px;font-size:15px;font-weight:700;color:var(--ink)}
+.waste-row{display:flex;align-items:center;padding:10px 14px;border-top:1px solid var(--line2);cursor:pointer;transition:background .1s;gap:6px}
+.waste-row:active{background:var(--line2)}
+.waste-row.hi{background:var(--o-pale);cursor:default}
+.waste-row.hi:active{background:var(--o-pale)}
+.waste-row-label{font-size:13px;color:var(--ink2);flex:1}
+.waste-row-val{font-family:var(--fm);font-size:13px;font-weight:600;color:var(--ink);background:var(--line2);border:1px solid var(--line);border-radius:6px;padding:2px 10px;min-width:36px;text-align:center}
+.waste-row-dot{font-size:12px;color:var(--o);flex-shrink:0}
+.waste-row-total{font-family:var(--fm);font-size:13px;font-weight:700;color:var(--o)}
+
+/* Toggle switch */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:13px;gap:12px}
+.toggle-info{flex:1}
+.toggle-label{font-size:14px;font-weight:600;color:var(--ink)}
+.toggle-sub{font-size:11px;color:var(--ink3);margin-top:1px}
+.toggle-switch{position:relative;flex-shrink:0;cursor:pointer}
+.toggle-switch input{position:absolute;opacity:0;width:0;height:0}
+.toggle-track{display:block;width:44px;height:26px;background:var(--line);border-radius:13px;transition:background .2s;position:relative}
+.toggle-switch input:checked ~ .toggle-track{background:var(--o)}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-switch input:checked ~ .toggle-track .toggle-thumb{transform:translateX(18px)}
+
+.spin{display:inline-block;/* Settings */
+.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--line2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink2);flex-shrink:0}
+.icon-btn:active{background:var(--line)}
+.sync-btn{width:36px;height:36px;border-radius:50%;background:var(--o-pale);border:1px solid var(--o-border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--o);flex-shrink:0;transition:background .15s}
+.sync-btn:active{background:var(--o);color:#fff}
+.sync-btn.syncing svg{animation:spin360 .9s linear infinite}
+@keyframes spin360{to{transform:rotate(360deg)}}
+.sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.settings-section{margin:16px 0 8px}
+.settings-section-title{font-size:13px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.05em}
+.settings-section-sub{font-size:12px;color:var(--ink3);margin-top:3px;line-height:1.4}
+.setup-steps{display:flex;flex-direction:column;gap:10px;padding:4px 0 8px}
+.setup-step{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--ink2);line-height:1.4}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--o);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.setup-step code{background:var(--line2);padding:1px 5px;border-radius:4px;font-size:11px;font-family:var(--fm)}
+
+/* Scope block */
+.scope-block{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.scope-line{display:flex;align-items:center;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line2);font-size:13px}
+.scope-ico{display:none}
+.scope-action{color:var(--ink3);font-weight:500;width:46px;flex-shrink:0;font-size:12px}
+.scope-qty{font-family:var(--fm);font-weight:700;color:var(--o);width:68px;flex-shrink:0;font-size:13px}
+.scope-desc{color:var(--ink);font-weight:500;flex:1}
+.scope-areas-row{display:flex;gap:8px;padding:10px 14px;background:var(--line2);font-size:12px;flex-wrap:wrap}
+.scope-areas-label{font-weight:700;color:var(--ink2);white-space:nowrap}
+.scope-areas-val{color:var(--ink3);flex:1;line-height:1.4}
+.drive-link-btn{font-size:12px;font-weight:700;color:var(--o);background:var(--o-pale);border:1px solid var(--o-border);border-radius:20px;padding:4px 10px;text-decoration:none;white-space:nowrap}
+.drive-link-btn:active{opacity:.8}
+.copy-scope-btn{font-size:12px;font-weight:700;color:var(--o);background:var(--o-pale);border:1px solid var(--o-border);border-radius:20px;padding:4px 12px;cursor:pointer}
+.copy-scope-btn:active{opacity:.8}
+.underlay-row{background:linear-gradient(90deg,var(--o-pale) 0,transparent 100%)}
+
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* Job notes banner */
+.job-notes-banner{display:flex;align-items:flex-start;gap:8px;padding:10px 16px;background:var(--o-pale);border-bottom:1px solid var(--o-border)}
+.job-notes-ico{font-size:15px;flex-shrink:0;margin-top:1px}
+.job-notes-text{flex:1;font-size:13px;color:var(--ink2);line-height:1.45}
+.job-notes-edit{font-size:12px;font-weight:600;color:var(--o);background:transparent;border:none;cursor:pointer;white-space:nowrap;padding:0;flex-shrink:0}
+.add-notes-btn{font-size:12px;font-weight:600;color:var(--ink3);background:transparent;border:none;cursor:pointer;padding:4px 0;display:flex;align-items:center;gap:4px}
+.add-notes-btn:active{color:var(--o)}
+
+/* Area note preview */
+.area-note-preview{font-size:11px;color:var(--ink3);margin-top:3px;line-height:1.35;font-style:italic}
+
+/* Photo count badge */
+.photo-count{position:absolute;bottom:3px;right:3px;background:rgba(0,0,0,.6);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;font-family:var(--fm)}
+
+/* ── DESKTOP LAYOUT ── */
+@media(min-width:900px){
+  body{box-shadow:none;background:var(--bg2);display:flex;align-items:flex-start;justify-content:center;padding:0}
+  
+  /* Sidebar */
+  #sidebar{display:flex!important;flex-direction:column;width:300px;height:100vh;position:fixed;left:calc(50vw - 630px);top:0;background:var(--card);border-right:1px solid var(--line);overflow-y:auto;z-index:10}
+  #sidebar-hdr{padding:18px 20px 10px;border-bottom:1px solid var(--line)}
+  #sidebar-title{font-size:18px;font-weight:800;color:var(--o);letter-spacing:-.02em}
+  #sidebar-sub{font-size:11px;color:var(--ink3);margin-top:2px}
+  #sidebar-search{padding:10px 16px}
+  #sidebar-jobs{flex:1;overflow-y:auto}
+  #sidebar-footer{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px}
+  
+  /* Main content panel */
+  #main-panel{margin-left:300px;width:960px;min-height:100vh;background:var(--bg);position:relative;left:calc(50vw - 630px + 300px)}
+  
+  /* Hide mobile nav on desktop */
+  .bnav{display:none!important}
+  
+  /* Job view gets tab bar at top instead of bottom */
+  #view-job .body{padding-bottom:20px}
+  
+  /* Wider cards on desktop */
+  .area-card{max-width:100%}
+  
+  /* Desktop tab bar */
+  #desktop-tabs{display:flex!important;border-bottom:2px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
+  .dtab{flex:1;padding:14px 8px;text-align:center;font-size:12px;font-weight:600;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
+  .dtab.on{color:var(--o);border-bottom-color:var(--o)}
+  .dtab:hover{color:var(--ink)}
+  
+  /* 2-col grid for packing+costing on desktop */
+  #desktop-2col{display:grid!important;grid-template-columns:1fr 1fr;gap:0}
+  
+  /* Home view on desktop — hide the mobile home, show sidebar */
+  #view-home{display:none!important}
+  
+  /* Area form wider */
+  #view-area .body>div{max-width:700px;margin:0 auto}
+  
+  /* Bigger click targets */
+  .list-row{padding:14px 20px}
+  .calc-block{margin:16px}
+}
+
+@media(min-width:900px) and (max-width:1300px){
+  #sidebar{left:0}
+  #main-panel{left:300px;width:calc(100vw - 300px)}
+}
+
+@media(max-width:899px){
+  #sidebar{display:none!important}
+  #desktop-tabs{display:none!important}
+  #desktop-2col{display:block!important}
+  #main-panel{margin-left:0;left:0;width:100%}
+  body{box-shadow:none}
+}
+
+@media(min-width:430px) and (max-width:899px){body{box-shadow:0 0 0 1px var(--line)}}
+</style>
+</head>
+<body>
+
+<!-- DESKTOP SIDEBAR -->
+<div id="sidebar" style="display:none">
+  <div id="sidebar-hdr">
+    <div id="sidebar-title">FloorPro</div>
+    <div id="sidebar-sub">Flooring Estimator</div>
+  </div>
+  <div id="sidebar-search">
+    <div class="search-box" style="margin:0">
+      <span style="color:var(--ink3);font-size:14px">⌕</span>
+      <input type="search" placeholder="Search jobs…" id="sidebarSearch" oninput="renderSidebarJobs()">
+    </div>
+  </div>
+  <div id="sidebar-jobs"></div>
+  <div id="sidebar-footer">
+    <button class="btn btn-s" style="flex:1;font-size:12px" onclick="openSettings()">⚙️ Settings</button>
+    <button class="btn btn-p" style="flex:1;font-size:12px" onclick="openNewJobModal()">+ New Job</button>
+  </div>
+</div>
+
+<!-- MAIN PANEL WRAPPER -->
+<div id="main-panel">
+
+<!-- HOME -->
+<div class="view active" id="view-home">
+  <div class="hdr">
+    <div class="hdr-title">FloorPro</div>
+    <div style="display:flex;gap:8px">
+      <button class="icon-btn" onclick="openSettings()" title="Settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="fab" onclick="openNewJobModal()">+</button>
+    </div>
+  </div>
+  <div class="body">
+    <div class="search-wrap">
+      <div class="search-row">
+        <div class="search-box">
+          <span style="color:var(--ink3);font-size:14px">⌕</span>
+          <input type="search" placeholder="Search jobs…" id="jobSearch" oninput="renderJobs()">
+        </div>
+      </div>
+    </div>
+    <div id="jobList"></div>
+  </div>
+</div>
+
+<!-- JOB -->
+<div class="view" id="view-job">
+  <div class="hdr">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div style="flex:1;min-width:0">
+      <div class="hdr-title" id="jobHdrTitle" style="font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+      <div id="jobCustomer" style="font-size:11px;color:var(--ink3);padding-left:2px;height:13px"></div>
+      <div id="syncStatus" style="font-size:10px;color:var(--ink3);padding-left:2px;height:12px"></div>
+    </div>
+    <button class="sync-btn" id="syncBtn" onclick="syncCurrentJob(true)" title="Sync to Drive">
+      <svg id="syncIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    </button>
+  </div>
+  <!-- Desktop tab bar (hidden on mobile via CSS) -->
+  <div id="desktop-tabs" style="display:none">
+    <div class="dtab on" id="dt-areas" onclick="goTab('areas')">🏠 Areas</div>
+    <div class="dtab" id="dt-pack" onclick="goTab('pack')">📦 Packing</div>
+    <div class="dtab" id="dt-cost" onclick="goTab('cost')">💰 Costing</div>
+  </div>
+  <div class="body" id="jobBody"></div>
+</div>
+
+<!-- AREA FORM -->
+<div class="view" id="view-area">
+  <div class="hdr">
+    <button class="back-btn" onclick="closeAreaForm()">←</button>
+    <div class="hdr-title" id="areaFormTitle">Add Area</div>
+  </div>
+  <div class="body">
+    <div style="padding:14px 16px 100px">
+      <div class="fg">
+        <label class="flabel">Area Name</label>
+        <input class="finput" id="af-name" type="text" placeholder="e.g. Living Room">
+      </div>
+      <div class="fg">
+        <label class="flabel">Floor Type</label>
+        <div class="fselect-wrap">
+          <select class="fselect" id="af-type">
+            <option>Concrete</option><option>Carpet</option><option>Tiles</option>
+            <option>Laminate</option><option>Floating Timber</option><option>Lino</option>
+            <option>Glued Down Vinyl Plank</option><option>Direct Stick Timber</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:13px">
+        <div class="fg" style="margin-bottom:0">
+          <label class="flabel">m²</label>
+          <input class="finput" id="af-m2" type="number" inputmode="decimal" placeholder="0.00">
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label class="flabel">Scotia lm</label>
+          <input class="finput" id="af-scotia" type="number" inputmode="decimal" placeholder="0.00">
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label class="flabel">Skirting lm</label>
+          <input class="finput" id="af-skirting" type="number" inputmode="decimal" placeholder="0.00">
+        </div>
+      </div>
+      <!-- Floor Removal toggle -->
+      <div class="toggle-row" id="removal-row">
+        <div class="toggle-info">
+          <div class="toggle-label">Floor Removal Required</div>
+          <div class="toggle-sub">Adds removal to job scope</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="af-removal" onchange="toggleRemoval()">
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+      </div>
+      <div id="removal-detail" style="display:none;margin-bottom:13px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fg" style="margin-bottom:0">
+            <label class="flabel">Current Floor Type</label>
+            <input class="finput" id="af-remtype" type="text" placeholder="e.g. Carpet">
+          </div>
+          <div class="fg" style="margin-bottom:0">
+            <label class="flabel">Removal m² <span style="font-size:9px;color:var(--ink3);font-weight:400;text-transform:none">(auto from area)</span></label>
+            <input class="finput" id="af-remm2" type="number" inputmode="decimal" placeholder="0.00">
+          </div>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flabel">Photos</label>
+        <div id="photo-grid" class="photo-grid"></div>
+        <label class="photo-lbl" for="photoInput" id="photoAddBtn">
+          <span style="font-size:18px">📷</span> <span>Add photo…</span>
+        </label>
+        <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotos(event)">
+      </div>
+      <div class="fg">
+        <label class="flabel">Area Notes</label>
+        <textarea class="finput" id="af-notes" rows="3" placeholder="Any notes for this area…" style="resize:none;line-height:1.5"></textarea>
+      </div>
+      <!-- Underlay toggle -->
+      <div class="toggle-row" style="margin-bottom:0">
+        <div class="toggle-info">
+          <div class="toggle-label">Underlay Required</div>
+          <div class="toggle-sub">Adds underlay rolls to packing list</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="af-underlay">
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+      </div>
+      <div class="div4" style="margin:8px -16px 12px"></div>
+      <div class="fg">
+        <div class="multi-hdr">
+          <label class="flabel" style="margin-bottom:0">Uni Covers <span id="ct-unicovers" style="background:var(--o-pale);color:var(--o);border-radius:20px;padding:0 6px;font-size:10px;margin-left:3px">0</span></label>
+          <button class="multi-add" onclick="addEntry('unicovers')">+</button>
+        </div>
+        <div class="multi-list" id="list-unicovers"></div>
+      </div>
+      <div class="fg">
+        <div class="multi-hdr">
+          <label class="flabel" style="margin-bottom:0">C Trims <span id="ct-ctrims" style="background:var(--o-pale);color:var(--o);border-radius:20px;padding:0 6px;font-size:10px;margin-left:3px">0</span></label>
+          <button class="multi-add" onclick="addEntry('ctrims')">+</button>
+        </div>
+        <div class="multi-list" id="list-ctrims"></div>
+      </div>
+      <div class="fg">
+        <div class="multi-hdr">
+          <label class="flabel" style="margin-bottom:0">Wrapped Nosing <span id="ct-nosing" style="background:var(--o-pale);color:var(--o);border-radius:20px;padding:0 6px;font-size:10px;margin-left:3px">0</span></label>
+          <button class="multi-add" onclick="addEntry('nosing')">+</button>
+        </div>
+        <div class="multi-list" id="list-nosing"></div>
+      </div>
+      <div class="fg">
+        <div class="multi-hdr">
+          <label class="flabel" style="margin-bottom:0">Steps <span id="ct-steps" style="background:var(--o-pale);color:var(--o);border-radius:20px;padding:0 6px;font-size:10px;margin-left:3px">0</span></label>
+          <button class="multi-add" onclick="addEntry('steps')">+</button>
+        </div>
+        <div class="multi-list" id="list-steps"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-s" onclick="closeAreaForm()">Cancel</button>
+        <button class="btn btn-p" onclick="saveArea()">Save Area</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav" id="bnav">
+  <button class="bnav-item on" id="ni-jobs" onclick="goHome()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+    Jobs
+  </button>
+  <button class="bnav-item" id="ni-areas" onclick="goTab('areas')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Areas
+  </button>
+  <button class="bnav-item" id="ni-pack" onclick="goTab('pack')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    Packing
+  </button>
+  <button class="bnav-item" id="ni-cost" onclick="goTab('cost')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    Costing
+  </button>
+</nav>
+
+<!-- NEW JOB MODAL -->
+<div class="overlay" id="modal-newjob">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <div class="sheet-title">New Job</div>
+      <button class="sheet-close" onclick="closeM('modal-newjob')">✕</button>
+    </div>
+    <div class="sheet-body">
+
+      <!-- GHL contact search (shows only if GHL configured) -->
+      <div id="ghl-search-section" style="display:none;margin-bottom:16px">
+        <label class="flabel">Search GHL Contact</label>
+        <div class="addr-field-wrap">
+          <input class="finput" id="ghl-search-input" type="text" placeholder="Name, phone or email…" style="flex:1" oninput="onGHLInput()">
+          <button class="addr-search-btn" onclick="searchGHL()" id="ghl-search-btn">Search</button>
+        </div>
+        <div class="addr-results" id="ghl-results"></div>
+        <div id="ghl-contact-card" style="display:none;background:var(--o-pale);border:1px solid var(--o-border);border-radius:var(--r);padding:10px 12px;margin-top:6px">
+          <div style="font-size:13px;font-weight:600;color:var(--ink)" id="ghl-contact-name"></div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:2px" id="ghl-contact-detail"></div>
+          <button style="font-size:11px;color:var(--ink3);background:none;border:none;cursor:pointer;padding:4px 0 0" onclick="clearGHLContact()">✕ Remove</button>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="flabel">Customer Name</label>
+        <input class="finput" id="nj-customer" type="text" placeholder="e.g. John Smith">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px">
+        <div class="fg" style="margin-bottom:0">
+          <label class="flabel">Phone</label>
+          <input class="finput" id="nj-phone" type="tel" placeholder="04xx xxx xxx">
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label class="flabel">Email</label>
+          <input class="finput" id="nj-email" type="email" placeholder="email@example.com">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="flabel">Address</label>
+        <div class="addr-field-wrap">
+          <input class="finput" id="nj-addr" type="text" placeholder="Search or type address…" style="flex:1" oninput="onAddrInput()" onkeydown="if(event.key==='Enter')createJob()">
+          <button class="addr-search-btn" onclick="searchAddr()" id="addr-btn">⌕ Find</button>
+        </div>
+        <div class="addr-results" id="addr-results"></div>
+      </div>
+      <div class="fg" style="margin-top:10px">
+        <label class="flabel">Job Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink3)">(optional)</span></label>
+        <textarea class="finput" id="nj-notes" rows="2" placeholder="Site access, special instructions…" style="resize:none;line-height:1.5"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-s" onclick="closeM('modal-newjob')">Cancel</button>
+        <button class="btn btn-p" onclick="createJob()">Create Job</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTX MENU -->
+<div class="ctx" id="ctx">
+  <div class="ctx-item" onclick="ctxDo('edit')">✏️ Edit</div>
+  <div class="ctx-div"></div>
+  <div class="ctx-item red" onclick="ctxDo('del')">🗑 Delete</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- SETTINGS OVERLAY -->
+<div class="overlay" id="modal-settings">
+  <div class="sheet" style="max-height:90vh;overflow-y:auto">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <div class="sheet-title">Settings</div>
+      <button class="sheet-close" onclick="closeM('modal-settings')">✕</button>
+    </div>
+    <div class="sheet-body" style="padding-bottom:32px">
+
+      <div class="settings-section">
+        <div class="settings-section-title">Google Drive Sync</div>
+        <div class="settings-section-sub">Syncs job data to a Google Sheet inside your Drive folder. <a href="https://script.google.com" target="_blank" style="color:var(--o)">Set up Apps Script →</a></div>
+      </div>
+
+      <div class="fg">
+        <label class="flabel">Webhook URL</label>
+        <input class="finput" id="cfg-webhook" type="url" placeholder="https://script.google.com/macros/s/…/exec" style="font-size:12px">
+        <div style="font-size:11px;color:var(--ink3);margin-top:4px">Paste your deployed Apps Script URL here</div>
+      </div>
+
+      <div class="fg">
+        <label class="flabel">Parent Folder ID</label>
+        <input class="finput" id="cfg-folderid" type="text" placeholder="1AbCdEf…">
+        <div style="font-size:11px;color:var(--ink3);margin-top:4px">The Google Drive folder where job folders will be created. Copy from the URL: drive.google.com/drive/folders/<strong>THIS_PART</strong></div>
+      </div>
+
+      <div class="fg">
+        <label class="flabel">Auto-sync</label>
+        <div class="toggle-row" style="margin-bottom:0">
+          <div class="toggle-info">
+            <div class="toggle-label">Auto-sync on save</div>
+            <div class="toggle-sub">Disabled — sync only happens when you tap the 🔄 button</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="cfg-autosync" checked>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-s" onclick="testConnection()">Test Connection</button>
+        <button class="btn btn-p" onclick="saveSettings()">Save Settings</button>
+      </div>
+
+      <div id="conn-result" style="margin-top:12px;font-size:13px;text-align:center;min-height:18px"></div>
+
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn btn-s" style="width:100%;background:var(--o-pale);color:var(--o);border-color:var(--o-border)" onclick="restoreFromDrive()">↓ Restore all jobs from Drive</button>
+      </div>
+      <div id="restore-result" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;color:var(--ink3)"></div>
+
+      <div class="settings-section" style="margin-top:24px">
+        <div class="settings-section-title">Go High Level</div>
+        <div class="settings-section-sub">Connect GHL to search contacts and sync quote values back to opportunities.</div>
+      </div>
+
+      <div class="fg">
+        <label class="flabel">GHL API Key</label>
+        <input class="finput" id="cfg-ghlkey" type="password" placeholder="eyJhbGciOi…" style="font-size:12px">
+        <div style="font-size:11px;color:var(--ink3);margin-top:4px">GHL → Settings → API → API Key</div>
+      </div>
+
+      <div class="fg">
+        <label class="flabel">GHL Location ID</label>
+        <input class="finput" id="cfg-ghlloc" type="text" placeholder="abc123XYZ…">
+        <div style="font-size:11px;color:var(--ink3);margin-top:4px">GHL → Settings → Business Profile → Location ID</div>
+      </div>
+
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn btn-s" onclick="testGHL()">Test GHL</button>
+      </div>
+      <div id="ghl-result" style="font-size:12px;text-align:center;margin-top:8px;min-height:16px;color:var(--ink3)"></div>
+
+      <div class="settings-section" style="margin-top:24px">
+        <div class="settings-section-title">Setup Guide</div>
+      </div>
+      <div class="setup-steps">
+        <div class="setup-step"><span class="step-num">1</span><span>Go to <strong>script.google.com</strong> and create a new project</span></div>
+        <div class="setup-step"><span class="step-num">2</span><span>Paste the FloorPro_Sync.gs script contents</span></div>
+        <div class="setup-step"><span class="step-num">3</span><span>Replace <code>ROOT_FOLDER_ID</code> with your folder ID</span></div>
+        <div class="setup-step"><span class="step-num">4</span><span>Click <strong>Deploy → New deployment → Web app</strong></span></div>
+        <div class="setup-step"><span class="step-num">5</span><span>Set <em>Execute as: Me</em> and <em>Who has access: Anyone</em></span></div>
+        <div class="setup-step"><span class="step-num">6</span><span>Copy the deployment URL and paste it above</span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</div><!-- end #main-panel -->
+
+<script>
+let S={jobs:[],cj:null,tab:'areas',pi:{},ci:{}};
+let _ent={unicovers:[],ctrims:[],nosing:[],steps:[]};
+let _photos=[],_editAid=null,_ctx={type:null,id:null};
+
+function _saveData(){
+  try {
+    // Strip large photo data from main state before saving — store photos separately
+    const slim=JSON.parse(JSON.stringify(S));
+    slim.jobs.forEach(j=>{
+      (j.areas||[]).forEach(a=>{
+        const key='fp_photos_'+j.id+'_'+a.id;
+        if(a.photos&&a.photos.length){
+          try{localStorage.setItem(key,JSON.stringify(a.photos));}catch(e){}
+          a.photoCount=a.photos.length;
+          delete a.photos;
+          delete a.photo;
+        } else if(a.photo) {
+          try{localStorage.setItem(key,JSON.stringify([a.photo]));}catch(e){}
+          a.photoCount=1;
+          delete a.photo;
+        }
+      });
+    });
+    localStorage.setItem('fp3',JSON.stringify(slim));
+  } catch(e) {
+    // If still too large, save without any photo refs
+    try {
+      const bare=JSON.parse(JSON.stringify(S));
+      bare.jobs.forEach(j=>{(j.areas||[]).forEach(a=>{delete a.photos;delete a.photo;});});
+      localStorage.setItem('fp3',JSON.stringify(bare));
+      toast('Saved (photos stored separately)');
+    } catch(e2){ toast('Save failed — storage full'); }
+  }
+}
+function _loadPhotos(){
+  // Re-attach photos from separate storage back into S
+  S.jobs.forEach(j=>{
+    (j.areas||[]).forEach(a=>{
+      const key='fp_photos_'+j.id+'_'+a.id;
+      try{
+        const d=localStorage.getItem(key);
+        if(d){const ps=JSON.parse(d);a.photos=ps;a.photo=ps[0]||null;}
+      }catch(e){}
+    });
+  });
+}
+function save(){_saveData();if(typeof autoSync==='function')autoSync();}
+function load(){try{const d=localStorage.getItem('fp3');if(d)S=Object.assign({jobs:[],cj:null,tab:'areas',pi:{},ci:{}},JSON.parse(d))}catch(e){}}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
+function job(id){return S.jobs.find(j=>j.id===id)||null}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fv(v,d=2){return(parseFloat(v)||0).toFixed(d)}
+function cu(v){return Math.ceil(v)}
+function $$(v){return'$'+v.toFixed(2)}
+
+function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+id).classList.add('active')}
+function navOn(id){document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('on'));const e=document.getElementById(id);if(e)e.classList.add('on')}
+
+function goHome(){
+  S.cj=null;
+  if(window.innerWidth>=900){
+    // On desktop — clear job selection, show sidebar highlight
+    renderSidebarJobs();
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-home').classList.add('active');
+  } else {
+    show('home');
+  }
+  navOn('ni-jobs');renderJobs();renderSidebarJobs();
+}
+
+function openJob(id){
+  S.cj=id;S.tab='areas';
+  // On desktop, show job view in main panel (sidebar stays visible)
+  if(window.innerWidth>=900){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-job').classList.add('active');
+  } else {
+    show('job');
+  }
+  navOn('ni-areas');
+  document.querySelectorAll('.dtab').forEach(t=>t.classList.remove('on'));
+  const dte=document.getElementById('dt-areas');if(dte)dte.classList.add('on');
+  renderJob();
+  renderSidebarJobs();
+}
+
+function goTab(tab){
+  if(!S.cj)return;
+  S.tab=tab;
+  navOn({'areas':'ni-areas','pack':'ni-pack','cost':'ni-cost'}[tab]||'ni-areas');
+  // Sync desktop tabs
+  document.querySelectorAll('.dtab').forEach(t=>t.classList.remove('on'));
+  const dtMap={'areas':'dt-areas','pack':'dt-pack','cost':'dt-cost'};
+  const dte=document.getElementById(dtMap[tab]);
+  if(dte)dte.classList.add('on');
+  renderJob();
+}
+
+function closeAreaForm(){show('job');renderJob()}
+
+function openAreaForm(jid,aid=null){
+  S.cj=jid;_editAid=aid;
+  document.getElementById('areaFormTitle').textContent=aid?'Edit Area':'Add Area';
+  ['af-name','af-m2','af-scotia','af-skirting'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('af-type').selectedIndex=0;
+  _photos=[];renderPhotoGrid();
+  document.getElementById('af-removal').checked=false;
+  document.getElementById('af-underlay').checked=false;
+  document.getElementById('af-notes').value='';
+  toggleRemoval();
+  Object.keys(_ent).forEach(k=>{_ent[k]=[];renderEnt(k)});
+  if(aid){
+    const j=job(jid),a=j&&j.areas.find(x=>x.id===aid);
+    if(a){
+      document.getElementById('af-name').value=a.name||'';
+      document.getElementById('af-m2').value=a.m2||'';
+      document.getElementById('af-scotia').value=a.scotia||'';
+      document.getElementById('af-skirting').value=a.skirting||'';
+      document.getElementById('af-notes').value=a.notes||'';
+      document.getElementById('af-removal').checked=!!(a.removal);
+      document.getElementById('af-underlay').checked=!!(a.underlay);
+      toggleRemoval();
+      if(a.removal){
+        document.getElementById('af-remtype').value=a.removalType||'';
+        document.getElementById('af-remm2').value=a.removalM2!==undefined?a.removalM2:(a.m2||'');
+      }
+      const sel=document.getElementById('af-type');
+      for(let i=0;i<sel.options.length;i++)if(sel.options[i].value===a.floorType){sel.selectedIndex=i;break}
+      _photos=[...(a.photos||[])];if(a.photo&&!_photos.length)_photos=[a.photo]; // migrate old single photo
+      renderPhotoGrid();
+      Object.keys(_ent).forEach(k=>{_ent[k]=[...(a[k]||[])];renderEnt(k)});
+    }
+  }
+  show('area');
+}
+
+// JOBS
+let _ghlContactId=null;
+function openNewJobModal(){
+  document.getElementById('nj-addr').value='';
+  document.getElementById('nj-notes').value='';
+  document.getElementById('nj-customer').value='';
+  document.getElementById('nj-phone').value='';
+  document.getElementById('nj-email').value='';
+  document.getElementById('addr-results').innerHTML='';
+  document.getElementById('addr-results').classList.remove('open');
+  document.getElementById('ghl-results').innerHTML='';
+  document.getElementById('ghl-contact-card').style.display='none';
+  document.getElementById('ghl-search-input').value='';
+  _ghlContactId=null;
+  // Show GHL search if configured
+  document.getElementById('ghl-search-section').style.display=CFG.ghlKey?'block':'none';
+  openM('modal-newjob');
+  setTimeout(()=>document.getElementById(CFG.ghlKey?'ghl-search-input':'nj-customer').focus(),220);
+}
+
+function createJob(){
+  const addr=document.getElementById('nj-addr').value.trim();
+  if(!addr){toast('Enter an address');return}
+  const notes=document.getElementById('nj-notes').value.trim();
+  const customer=document.getElementById('nj-customer').value.trim();
+  const phone=document.getElementById('nj-phone').value.trim();
+  const email=document.getElementById('nj-email').value.trim();
+  const j={
+    id:uid(),address:addr,notes,
+    customer,phone,email,
+    ghlContactId:_ghlContactId||null,
+    ghlOpportunityId:null,
+    areas:[],created:Date.now()
+  };
+  S.jobs.unshift(j);save();closeM('modal-newjob');openJob(j.id);
+}
+
+function renderSidebarJobs(){
+  const q=(document.getElementById('sidebarSearch').value||'').toLowerCase();
+  const el=document.getElementById('sidebar-jobs');
+  if(!el)return;
+  const list=S.jobs.filter(j=>j.address.toLowerCase().includes(q));
+  if(!list.length){el.innerHTML='<div style="padding:16px;color:var(--ink3);font-size:13px;text-align:center">No jobs yet</div>';return;}
+  el.innerHTML=list.map(j=>{
+    const n=j.areas.length,m2=j.areas.reduce((s,a)=>s+(parseFloat(a.m2)||0),0);
+    const active=j.id===S.cj?'background:var(--o-pale);border-left:3px solid var(--o);':'border-left:3px solid transparent;';
+    return`<div style="padding:12px 16px;cursor:pointer;${active}border-bottom:1px solid var(--line2)" onclick="openJob('${j.id}')">
+      <div style="font-size:14px;font-weight:600;color:${j.id===S.cj?'var(--o)':'var(--ink)'}">${esc(j.address)}</div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:2px">${n} area${n!==1?'s':''} · ${m2.toFixed(1)} m²</div>
+    </div>`;
+  }).join('');
+}
+
+function renderJobs(){
+  const q=(document.getElementById('jobSearch').value||'').toLowerCase();
+  const el=document.getElementById('jobList');
+  const list=S.jobs.filter(j=>j.address.toLowerCase().includes(q));
+  if(!list.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ico">📋</div><div class="empty-t">No jobs yet</div><div class="empty-s">Tap + to create your first job</div></div>`;
+    return;
+  }
+  el.innerHTML=list.map(j=>{
+    const n=j.areas.length,m2=j.areas.reduce((s,a)=>s+(parseFloat(a.m2)||0),0);
+    return`<div class="list-row" onclick="openJob('${j.id}')">
+      <div class="list-row-icon">🏗</div>
+      <div class="list-row-body">
+        <div class="list-row-title">${esc(j.address)}</div>
+        <div class="list-row-meta">${j.customer?esc(j.customer)+' · ':''}${n} area${n!==1?'s':''} · ${m2.toFixed(1)} m²</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:3px">
+        <span class="chevron">›</span>
+        <button class="more-btn" onclick="event.stopPropagation();openCtx(event,'job','${j.id}')">···</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// JOB VIEW
+function renderJob(){
+  const j=job(S.cj);if(!j){goHome();return}
+  document.getElementById('jobHdrTitle').textContent=j.address;
+  const custEl=document.getElementById('jobCustomer');
+  if(custEl)custEl.textContent=j.customer||'';
+  if(j.lastSync) setSyncStatus('Synced '+j.lastSync,'#2a9d2a');
+  else setSyncStatus('Not synced','var(--ink3)');
+  const areas=j.areas||[];
+  const totM2=areas.reduce((s,a)=>s+(parseFloat(a.m2)||0),0);
+  const totSk=areas.reduce((s,a)=>s+(parseFloat(a.skirting)||0),0);
+  const totSc=areas.reduce((s,a)=>s+(parseFloat(a.scotia)||0),0);
+
+  const pi=S.pi[j.id]||{};
+  const ci=S.ci[j.id]||{};
+  // Editable wastage: flooring default 5%, skirting default 10%, scotia always 7% (hidden)
+  const floorWaste=pi.floorWaste!==undefined?parseFloat(pi.floorWaste):5;
+  const skirtWaste=pi.skirtWaste!==undefined?parseFloat(pi.skirtWaste):10;
+  const totM2W=totM2*(1+floorWaste/100);
+  const totSkW=totSk*(1+skirtWaste/100);
+  const totScW=totSc*1.07; // 7% fixed, not shown to user
+
+  const bom={};areas.forEach(a=>{if(!bom[a.floorType])bom[a.floorType]=0;bom[a.floorType]+=parseFloat(a.m2)||0});
+  const totUni=areas.reduce((s,a)=>s+(a.unicovers||[]).reduce((ss,v)=>ss+(parseFloat(v)||0),0),0);
+  const totCt=areas.reduce((s,a)=>s+(a.ctrims||[]).reduce((ss,v)=>ss+(parseFloat(v)||0),0),0);
+  const totNos=areas.reduce((s,a)=>s+(a.nosing||[]).reduce((ss,v)=>ss+(parseFloat(v)||0),0),0);
+  const totSteps=areas.reduce((s,a)=>s+(a.steps||[]).length,0);
+
+  const packSz=parseFloat(pi.packSize)||0;
+  const skPk=parseFloat(pi.skirtPack)||5.4;
+  const scPk=parseFloat(pi.scotPack)||3.0;
+
+  const boxes=packSz>0?cu(totM2W/packSz):0;
+  const uniQ=cu(cu(totUni/3.4*2)/2);
+  const ctQ=cu(cu(totCt/3.4*2)/2);
+  const nosQ=cu(cu(totNos/3.4*2)/2);
+  const skPkQ=skPk>0?cu(cu(totSkW/skPk*2)/2):0;
+  const scPkQ=scPk>0?cu(cu(totScW/scPk*2)/2):0;
+  // Underlay: only areas with underlay=true, use totM2W for those areas, 20m2 rolls, sell half-rolls
+  const underlayAreas=areas.filter(a=>a.underlay);
+  const underlayNeeded=underlayAreas.reduce((s,a)=>{
+    const aw=parseFloat(a.m2)||0;
+    const waste=pi.floorWaste!==undefined?parseFloat(pi.floorWaste):5;
+    return s+aw*(1+waste/100);
+  },0);
+  const underlayRolls=underlayNeeded>0?Math.ceil(underlayNeeded/10)/2:0; // half-roll units of 10m2 (half of 20m2)
+  const underlayRollsFull=underlayNeeded>0?Math.ceil(underlayNeeded/20):0;
+  const underlayHalf=underlayNeeded>0&&(underlayRolls*2)>underlayRollsFull*2?0.5:0; // need half roll?
+  // Simpler: rolls = ceil(m2/20), but sell halves so minimum is 0.5
+  const underlayDisplay=underlayNeeded>0?(Math.ceil(underlayNeeded/10)/2).toFixed(1):0;
+  const underlayRequired=underlayAreas.length>0;
+
+  const fpC=parseFloat(ci.fpCost)||0,instC=parseFloat(ci.instCost)||0;
+  const uniC=ci.uniCost!==undefined?parseFloat(ci.uniCost):25;
+  const ctC=ci.ctCost!==undefined?parseFloat(ci.ctCost):20;
+  const nosC=ci.nosCost!==undefined?parseFloat(ci.nosCost):40;
+  const skC=ci.skCost!==undefined?parseFloat(ci.skCost):11;
+  const mg=parseFloat(ci.margin)||0;
+  const mf=mg>0&&mg<100?1-mg/100:1;
+
+  const cL=[
+    {l:'Flooring',c:boxes*packSz*fpC},
+    {l:'Installation',c:totM2*instC},
+    {l:'Uni Covers',c:uniQ*uniC},
+    {l:'C Trims',c:ctQ*ctC},
+    {l:'Nosings',c:nosQ*nosC},
+    {l:'Skirtings',c:totSkW*skC},
+  ];
+  const totEx=cL.reduce((s,l)=>s+l.c,0);
+  const totSell=mf>0?totEx/mf:totEx;
+  const totGST=totSell*1.10;
+
+  const icons={'Concrete':'🪨','Carpet':'🟣','Tiles':'🟦','Laminate':'🟫','Floating Timber':'🌿','Lino':'⬜','Glued Down Vinyl Plank':'🔷','Direct Stick Timber':'🌲'};
+  let h='';
+
+  if(S.tab==='areas'){
+    // Job notes banner
+    if(j.notes){
+      h+=`<div class="job-notes-banner">
+        <span class="job-notes-ico">📝</span>
+        <span class="job-notes-text" id="jnotes-text">${esc(j.notes)}</span>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          ${j.driveFolder?`<a href="${j.driveFolder}" target="_blank" class="drive-link-btn">📂</a>`:''}
+          <button class="job-notes-edit" onclick="editJobNotes('${j.id}')">Edit</button>
+        </div>
+      </div>`;
+    } else {
+      h+=`<div style="padding:8px 16px 0;display:flex;align-items:center;justify-content:space-between">
+        <button class="add-notes-btn" onclick="editJobNotes('${j.id}')">＋ Add job notes</button>
+        ${j.driveFolder?`<a href="${j.driveFolder}" target="_blank" class="drive-link-btn">📂 Drive</a>`:''}
+      </div>`;
+    }
+    h+=`<div class="sec-hdr"><div class="sec-title">Areas</div><button class="fab" onclick="openAreaForm('${j.id}')">+</button></div>`;
+    if(!areas.length){
+      h+=`<div class="empty"><div class="empty-ico">🏠</div><div class="empty-t">No areas</div><div class="empty-s">Tap + to add your first area</div></div>`;
+    } else {
+      areas.forEach(a=>{
+        const photos=a.photos&&a.photos.length?a.photos:(a.photo?[a.photo]:[]);
+        const thumbHtml=photos.length?`<img src="${photos[0]}">`:(icons[a.floorType]||'🏠');
+        const photoCount=photos.length>1?`<span class="photo-count">+${photos.length-1}</span>`:'';
+        h+=`<div class="area-card" onclick="openAreaForm('${j.id}','${a.id}')">
+          <div class="area-thumb" style="position:relative">${thumbHtml}${photoCount}</div>
+          <div class="area-body">
+            <div class="area-name">${esc(a.name||'Unnamed')}</div>
+            <div class="area-meta">
+              <span class="m2-val">${fv(a.m2)} m²</span>
+              <span class="tag">${esc(a.floorType)}</span>
+              ${parseFloat(a.skirting)?`<span class="tag-gray">${fv(a.skirting)}lm sk</span>`:''}
+            </div>
+            ${a.notes?`<div class="area-note-preview">${esc(a.notes.length>60?a.notes.slice(0,60)+'…':a.notes)}</div>`:''}
+          </div>
+          <div style="display:flex;align-items:center;gap:2px">
+            <span class="chevron">›</span>
+            <button class="more-btn" onclick="event.stopPropagation();openCtx(event,'area','${a.id}')">···</button>
+          </div>
+        </div>`;
+      });
+    }
+    h+=`<div class="div8"></div>`;
+    if(Object.keys(bom).length){
+      h+=`<div class="sec-hdr" style="padding-bottom:4px"><div class="sec-title">Breakdown</div></div>
+      <div class="bom-list">${Object.entries(bom).map(([t,m])=>`<div class="bom-row"><span>${esc(t)}</span><span class="bom-val">${m.toFixed(2)} m²</span></div>`).join('')}</div>
+      <div class="div4"></div>`;
+    }
+
+    // Wastage blocks — editable, matching screenshot layout
+    h+=`<div style="padding:0 16px 16px">
+      <!-- Floor Area block -->
+      <div class="waste-block" style="margin-bottom:10px">
+        <div class="waste-block-title">Floor Area</div>
+        <div class="waste-row" onclick="editWastage('${j.id}','floor',${floorWaste})">
+          <span class="waste-row-label">Wastage %</span>
+          <span class="waste-row-val">${floorWaste}</span>
+        </div>
+        <div class="waste-row hi">
+          <span class="waste-row-label">Total Including Wastage</span>
+          <span class="waste-row-dot">•</span>
+          <span class="waste-row-total">${fv(totM2W)} m²</span>
+        </div>
+      </div>
+      <!-- Skirting Area block -->
+      <div class="waste-block">
+        <div class="waste-block-title">Skirting Area</div>
+        <div class="waste-row" onclick="editWastage('${j.id}','skirt',${skirtWaste})">
+          <span class="waste-row-label">Wastage %</span>
+          <span class="waste-row-val">${skirtWaste}</span>
+        </div>
+        <div class="waste-row hi">
+          <span class="waste-row-label">Total Including Wastage</span>
+          <span class="waste-row-dot">•</span>
+          <span class="waste-row-total">${fv(totSkW)} lm</span>
+        </div>
+      </div>
+      <!-- Scotia raw total (no block — 7% applied silently in packing) -->
+      ${totSc>0?`<div style="margin-top:10px;padding:10px 0;border-top:1px solid var(--line2)">
+        <div style="display:flex;justify-content:space-between;font-size:13px">
+          <span style="color:var(--ink2)">Scotia Total</span>
+          <span style="font-family:var(--fm);font-weight:600">${fv(totSc)} lm</span>
+        </div>
+      </div>`:''}
+    </div>`;
+
+    // ── SCOPE SECTION ──
+    h+=`<div class="div8"></div>`;
+    h+=buildScope(j, areas, totM2W, totSk, floorWaste);
+
+  } else if(S.tab==='pack'){
+    h+=`<div class="div8"></div>
+    <div class="calc-block">
+      <div class="calc-hdr"><span class="calc-hdr-ico">⚙️</span><span class="calc-hdr-t">Pack Sizes</span></div>
+      <div class="calc-body">
+        <div class="inp-row"><label>m² per flooring box</label><input type="number" inputmode="decimal" value="${pi.packSize||''}" placeholder="2.16" onchange="uPI('${j.id}','packSize',this.value)"></div>
+        <div class="inp-row"><label>Skirting length per pack (m)</label><input type="number" inputmode="decimal" value="${pi.skirtPack||5.4}" onchange="uPI('${j.id}','skirtPack',this.value)"></div>
+        <div class="inp-row"><label>Scotia length per pack (m)</label><input type="number" inputmode="decimal" value="${pi.scotPack||3.0}" onchange="uPI('${j.id}','scotPack',this.value)"></div>
+      </div>
+    </div>
+    <div class="calc-block">
+      <div class="calc-hdr"><span class="calc-hdr-ico">📦</span><span class="calc-hdr-t">Packing List</span></div>
+      <div class="calc-body">
+        <div class="res-row"><span class="res-label">Flooring Boxes</span><span class="res-val">${boxes}</span></div>
+        <div class="res-row"><span class="res-label">Skirting Packs</span><span class="res-val">${skPkQ}</span></div>
+        <div class="res-row"><span class="res-label">Scotia Packs</span><span class="res-val">${scPkQ}</span></div>
+        ${underlayRequired?`<div class="res-row underlay-row"><span class="res-label">🟦 Underlay Rolls <span style="font-size:10px;color:var(--ink3)">(20m² rolls, sell ½)</span></span><span class="res-val">${underlayDisplay}</span></div>`:''}
+        <div class="res-row"><span class="res-label">Uni Covers</span><span class="res-val">${uniQ}</span></div>
+        <div class="res-row"><span class="res-label">C Trims</span><span class="res-val">${ctQ}</span></div>
+        <div class="res-row"><span class="res-label">Wrapped Nosings</span><span class="res-val">${nosQ}</span></div>
+        <div class="res-row"><span class="res-label">Steps</span><span class="res-val">${totSteps}</span></div>
+      </div>
+    </div>`;
+
+  } else if(S.tab==='cost'){
+    h+=`<div class="div8"></div>
+    <div class="calc-block">
+      <div class="calc-hdr"><span class="calc-hdr-ico">💰</span><span class="calc-hdr-t">Cost Inputs <span style="font-size:10px;color:var(--ink3);font-weight:400">(ex-GST)</span></span></div>
+      <div class="calc-body">
+        <div class="inp-row"><label>Flooring cost $/m²</label><input type="number" inputmode="decimal" value="${ci.fpCost||''}" placeholder="0.00" onchange="uCI('${j.id}','fpCost',this.value)"></div>
+        <div class="inp-row"><label>Install $/m²</label><input type="number" inputmode="decimal" value="${ci.instCost||''}" placeholder="0.00" onchange="uCI('${j.id}','instCost',this.value)"></div>
+        <div class="inp-row"><label>Uni Cover $/length</label><input type="number" inputmode="decimal" value="${ci.uniCost!==undefined?ci.uniCost:25}" onchange="uCI('${j.id}','uniCost',this.value)"></div>
+        <div class="inp-row"><label>C Trim $/length</label><input type="number" inputmode="decimal" value="${ci.ctCost!==undefined?ci.ctCost:20}" onchange="uCI('${j.id}','ctCost',this.value)"></div>
+        <div class="inp-row"><label>Wrapped Nosing $/length</label><input type="number" inputmode="decimal" value="${ci.nosCost!==undefined?ci.nosCost:40}" onchange="uCI('${j.id}','nosCost',this.value)"></div>
+        <div class="inp-row"><label>Skirting $/lm</label><input type="number" inputmode="decimal" value="${ci.skCost!==undefined?ci.skCost:11}" onchange="uCI('${j.id}','skCost',this.value)"></div>
+        <div class="inp-row"><label>Margin %</label><input type="number" inputmode="decimal" value="${ci.margin||''}" placeholder="0" onchange="uCI('${j.id}','margin',this.value)"></div>
+      </div>
+    </div>
+    <div class="calc-block">
+      <div class="calc-hdr"><span class="calc-hdr-ico">📊</span><span class="calc-hdr-t">Quote Breakdown</span></div>
+      <div class="calc-body" style="overflow-x:auto">
+        <table class="cost-tbl">
+          <thead><tr><th>Item</th><th>Ex-GST</th><th>+Margin</th><th>Inc.GST</th></tr></thead>
+          <tbody>
+            ${cL.map(l=>{const s=mf>0?l.c/mf:l.c;return`<tr><td>${l.l}</td><td>${$$(l.c)}</td><td>${$$(s)}</td><td>${$$(s*1.10)}</td></tr>`}).join('')}
+            <tr class="tot"><td>TOTAL</td><td>${$$(totEx)}</td><td>${$$(totSell)}</td><td>${$$(totGST)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('jobBody').innerHTML=h;
+}
+
+function uPI(jid,k,v){if(!S.pi[jid])S.pi[jid]={};S.pi[jid][k]=v;save();renderJob()}
+function uCI(jid,k,v){if(!S.ci[jid])S.ci[jid]={};S.ci[jid][k]=v;save();renderJob()}
+
+// Toggle removal detail section
+function toggleRemoval(){
+  const on=document.getElementById('af-removal').checked;
+  const detail=document.getElementById('removal-detail');
+  if(detail)detail.style.display=on?'block':'none';
+  if(on){
+    // Auto-fill removalM2 from current m2 if empty
+    const m2=document.getElementById('af-m2').value;
+    const rem=document.getElementById('af-remm2');
+    if(rem&&!rem.value&&m2)rem.value=m2;
+  }
+}
+// Sync removal m2 when main m2 changes
+document.getElementById('af-m2').addEventListener('input',function(){
+  if(document.getElementById('af-removal').checked){
+    const rem=document.getElementById('af-remm2');
+    if(rem&&!rem._manual)rem.value=this.value;
+  }
+});
+document.getElementById('af-remm2').addEventListener('input',function(){this._manual=!!this.value});
+
+// MULTI ENTRY
+function addEntry(k,v=''){_ent[k].push(v);renderEnt(k)}
+function delEntry(k,i){_ent[k].splice(i,1);renderEnt(k)}
+function renderEnt(k){
+  document.getElementById('ct-'+k).textContent=_ent[k].length;
+  document.getElementById('list-'+k).innerHTML=_ent[k].map((v,i)=>`
+    <div class="multi-row">
+      <input type="number" inputmode="decimal" value="${v}" placeholder="Length (m)" oninput="_ent['${k}'][${i}]=this.value">
+      <button class="multi-del" onclick="delEntry('${k}',${i})">✕</button>
+    </div>`).join('');
+}
+
+function handlePhotos(e){
+  const files=Array.from(e.target.files);
+  if(!files.length)return;
+  files.forEach(f=>{
+    if(f.size>5*1024*1024){toast(f.name+' too large (max 5MB)');return}
+    const r=new FileReader();
+    r.onload=ev=>{_photos.push(ev.target.result);renderPhotoGrid()};
+    r.readAsDataURL(f);
+  });
+  e.target.value=''; // reset so same file can be re-added
+}
+function renderPhotoGrid(){
+  const grid=document.getElementById('photo-grid');
+  if(!grid)return;
+  grid.innerHTML=_photos.map((src,i)=>`
+    <div class="photo-thumb">
+      <img src="${src}" alt="Photo ${i+1}">
+      <button class="photo-del" onclick="removePhoto(${i})">✕</button>
+    </div>`).join('');
+}
+function removePhoto(i){_photos.splice(i,1);renderPhotoGrid()}
+
+function saveArea(){
+  const name=document.getElementById('af-name').value.trim();
+  if(!name){toast('Enter area name');document.getElementById('af-name').focus();return}
+  const removalOn=document.getElementById('af-removal').checked;
+  const m2val=parseFloat(document.getElementById('af-m2').value)||0;
+  const area={
+    id:_editAid||uid(),name,
+    floorType:document.getElementById('af-type').value,
+    m2:m2val,
+    scotia:parseFloat(document.getElementById('af-scotia').value)||0,
+    skirting:parseFloat(document.getElementById('af-skirting').value)||0,
+    photos:[..._photos],
+    photo:_photos[0]||null,
+    notes:document.getElementById('af-notes').value.trim(),
+    underlay:document.getElementById('af-underlay').checked,
+    removal:removalOn,
+    removalType:removalOn?(document.getElementById('af-remtype').value.trim()||'Unknown'):'',
+    removalM2:removalOn?(parseFloat(document.getElementById('af-remm2').value)||m2val):0,
+    unicovers:_ent.unicovers.map(v=>parseFloat(v)||0).filter(v=>v>0),
+    ctrims:_ent.ctrims.map(v=>parseFloat(v)||0).filter(v=>v>0),
+    nosing:_ent.nosing.map(v=>parseFloat(v)||0).filter(v=>v>0),
+    steps:_ent.steps.map(v=>parseFloat(v)||0),
+  };
+  const j=job(S.cj);if(!j)return;
+  if(_editAid){const idx=j.areas.findIndex(a=>a.id===_editAid);if(idx>=0)j.areas[idx]=area;else j.areas.push(area)}
+  else j.areas.push(area);
+  save();toast(_editAid?'Area updated':'Area added');closeAreaForm();
+}
+
+// ADDRESS SEARCH
+let _addrTimer=null,_addrItems=[];
+function onAddrInput(){
+  clearTimeout(_addrTimer);
+  const v=document.getElementById('nj-addr').value.trim();
+  if(v.length<3){closeAddrR();return}
+  _addrTimer=setTimeout(searchAddr,700);
+}
+function searchAddr(){
+  const v=document.getElementById('nj-addr').value.trim();
+  if(!v){toast('Enter an address first');return}
+  const btn=document.getElementById('addr-btn');
+  btn.innerHTML='<span class="spin"></span>';btn.disabled=true;
+  fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(v)}&format=json&addressdetails=1&limit=5&countrycodes=au`,
+    {headers:{'Accept-Language':'en','User-Agent':'FloorPro/1.0'}})
+    .then(r=>r.json())
+    .then(data=>{
+      btn.innerHTML='⌕ Find';btn.disabled=false;
+      if(!data||!data.length){showAddrR([]);return}
+      _addrItems=data.map(d=>({
+        main:(d.address?.house_number?d.address.house_number+' ':'')+( d.address?.road||d.display_name.split(',')[0]),
+        sub:[d.address?.suburb||d.address?.town||d.address?.city,d.address?.state,d.address?.postcode].filter(Boolean).join(', ')
+      }));
+      showAddrR(_addrItems);
+    })
+    .catch(()=>{btn.innerHTML='⌕ Find';btn.disabled=false;toast('Search failed — type manually')});
+}
+function showAddrR(items){
+  const el=document.getElementById('addr-results');
+  if(!items.length){el.innerHTML=`<div class="addr-item"><div class="addr-main" style="color:var(--ink3)">No results</div></div>`;el.classList.add('open');return}
+  el.innerHTML=items.map((a,i)=>`<div class="addr-item" onclick="pickAddr(${i})"><div class="addr-main">${esc(a.main)}</div><div class="addr-sub">${esc(a.sub)}</div></div>`).join('');
+  el.classList.add('open');
+}
+function pickAddr(i){
+  const a=_addrItems[i];if(!a)return;
+  document.getElementById('nj-addr').value=a.main+(a.sub?', '+a.sub:'');
+  closeAddrR();
+}
+function closeAddrR(){const e=document.getElementById('addr-results');e.classList.remove('open');e.innerHTML=''}
+
+// CTX
+function openCtx(e,type,id){
+  e.stopPropagation();_ctx={type,id};
+  const m=document.getElementById('ctx');m.classList.add('open');
+  m.style.left=Math.min(e.clientX,window.innerWidth-165)+'px';
+  m.style.top=Math.min(e.clientY+4,window.innerHeight-85)+'px';
+}
+function closeCtx(){document.getElementById('ctx').classList.remove('open')}
+function ctxDo(action){
+  closeCtx();
+  if(_ctx.type==='job'){
+    const j=job(_ctx.id);if(!j)return;
+    if(action==='edit'){const a=prompt('Edit address:',j.address);if(a&&a.trim()){j.address=a.trim();save();renderJobs()}}
+    else if(action==='del'){if(confirm('Delete job?')){S.jobs=S.jobs.filter(x=>x.id!==_ctx.id);save();renderJobs();toast('Deleted')}}
+  } else {
+    const j=job(S.cj);if(!j)return;
+    if(action==='edit')openAreaForm(S.cj,_ctx.id);
+    else if(action==='del'){if(confirm('Delete area?')){j.areas=j.areas.filter(a=>a.id!==_ctx.id);save();renderJob();toast('Deleted')}}
+  }
+}
+document.addEventListener('click',e=>{if(!document.getElementById('ctx').contains(e.target))closeCtx()});
+
+// MODALS
+function openM(id){document.getElementById(id).classList.add('open')}
+function closeM(id){document.getElementById(id).classList.remove('open');closeAddrR()}
+document.getElementById('modal-newjob').addEventListener('click',function(e){if(e.target===this)closeM('modal-newjob')});
+document.getElementById('modal-settings').addEventListener('click',function(e){if(e.target===this)closeM('modal-settings')});
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+
+// ── SCOPE BUILDER ──
+function buildScope(j, areas, totM2W, totSk, floorWaste){
+  if(!areas.length) return '';
+
+  var installByType={};
+  areas.forEach(function(a){
+    var t=a.floorType||'Unknown';
+    if(!installByType[t])installByType[t]=0;
+    installByType[t]+=(parseFloat(a.m2)||0)*(1+floorWaste/100);
+  });
+
+  var removeByType={};
+  areas.forEach(function(a){
+    if(a.removal&&a.removalM2>0){
+      var t=a.removalType||'Unknown';
+      if(!removeByType[t])removeByType[t]=0;
+      removeByType[t]+=parseFloat(a.removalM2)||0;
+    }
+  });
+
+  var skirtingTotal=areas.reduce(function(s,a){return s+(parseFloat(a.skirting)||0);},0);
+  var areaNames=areas.map(function(a){return a.name||'Unnamed';}).join(', ');
+
+  var lines=[];
+  Object.keys(installByType).forEach(function(type){
+    lines.push({icon:'',action:'Install',qty:installByType[type].toFixed(1)+' m\u00B2',desc:type});
+  });
+  Object.keys(removeByType).forEach(function(type){
+    lines.push({icon:'',action:'Remove',qty:removeByType[type].toFixed(1)+' m\u00B2',desc:type});
+  });
+  if(skirtingTotal>0){
+    lines.push({icon:'',action:'Install',qty:skirtingTotal.toFixed(1)+' L/M',desc:'Skirtings'});
+  }
+
+  var scopeLines=['Scope:'];
+  Object.keys(installByType).forEach(function(t){scopeLines.push('Install '+installByType[t].toFixed(1)+'m² '+t);});
+  Object.keys(removeByType).forEach(function(t){scopeLines.push('Remove '+removeByType[t].toFixed(1)+'m² '+t);});
+  if(skirtingTotal>0) scopeLines.push('Install '+skirtingTotal.toFixed(1)+'L/M Skirtings');
+  scopeLines.push('Areas: '+areaNames);
+  var scopeText=scopeLines.join('\n');
+
+  var linesHtml=lines.map(function(l){
+    return '<div class="scope-line">'
+      +'<span class="scope-ico">'+l.icon+'</span>'
+      +'<span class="scope-action">'+l.action+'</span>'
+      +'<span class="scope-qty">'+l.qty+'</span>'
+      +'<span class="scope-desc">'+esc(l.desc)+'</span>'
+      +'</div>';
+  }).join('');
+
+  var encodedScope=encodeURIComponent(scopeText);
+
+  return '<div style="padding:0 16px 20px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+    +'<div class="sec-title">Scope</div>'
+    +'<button class="copy-scope-btn" onclick="copyScope(decodeURIComponent(\''+encodedScope+'\'))">Copy</button>'
+    +'</div>'
+    +'<div class="scope-block">'
+    +linesHtml
+    +'<div class="scope-areas-row">'
+    +'<span class="scope-areas-label">Areas&nbsp;</span>'
+    +'<span class="scope-areas-val">'+esc(areaNames)+'</span>'
+    +'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+function copyScope(text){
+  navigator.clipboard.writeText(text).then(()=>toast('Scope copied!')).catch(()=>{
+    // fallback
+    const ta=document.createElement('textarea');
+    ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+    toast('Scope copied!');
+  });
+}
+
+// Job notes editing
+function editJobNotes(jid){
+  const j=job(jid);if(!j)return;
+  // Use a sheet modal approach — inject a temp overlay
+  const existing=document.getElementById('notes-overlay');
+  if(existing)existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='notes-overlay';
+  overlay.className='overlay open';
+  overlay.innerHTML=`<div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hdr">
+      <div class="sheet-title">Job Notes</div>
+      <button class="sheet-close" onclick="document.getElementById('notes-overlay').remove()">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="fg">
+        <label class="flabel">Notes</label>
+        <textarea class="finput" id="jnotes-input" rows="5" placeholder="Client name, site access, special instructions…" style="resize:none;line-height:1.5">${esc(j.notes||'')}</textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-s" onclick="document.getElementById('notes-overlay').remove()">Cancel</button>
+        <button class="btn btn-p" onclick="saveJobNotes('${jid}')">Save</button>
+      </div>
+    </div>
+  </div>`;
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});
+  document.body.appendChild(overlay);
+  setTimeout(()=>document.getElementById('jnotes-input')&&document.getElementById('jnotes-input').focus(),200);
+}
+
+function saveJobNotes(jid){
+  const j=job(jid);if(!j)return;
+  const val=document.getElementById('jnotes-input').value.trim();
+  j.notes=val;save();
+  document.getElementById('notes-overlay').remove();
+  renderJob();
+}
+
+// Wastage editing — inline popover
+function editWastage(jid, type, current){
+  const label=type==='floor'?'Floor wastage %':'Skirting wastage %';
+  const val=prompt(label+' (current: '+current+'%):',current);
+  if(val===null)return;
+  const n=parseFloat(val);
+  if(isNaN(n)||n<0||n>100){toast('Enter a valid % (0–100)');return}
+  if(!S.pi[jid])S.pi[jid]={};
+  S.pi[jid][type==='floor'?'floorWaste':'skirtWaste']=n;
+  save();renderJob();
+}
+
+// ── SETTINGS ──
+const CFG_KEY='fp_cfg';
+let CFG={webhook:'',folderId:'',autoSync:true,ghlKey:'',ghlLoc:''};
+
+function loadCfg(){
+  try{const d=localStorage.getItem(CFG_KEY);if(d)CFG=Object.assign({webhook:'',folderId:'',autoSync:true},JSON.parse(d));}catch(e){}
+}
+function saveCfg(){localStorage.setItem(CFG_KEY,JSON.stringify(CFG))}
+
+function openSettings(){
+  document.getElementById('cfg-webhook').value=CFG.webhook||'';
+  document.getElementById('cfg-folderid').value=CFG.folderId||'';
+  document.getElementById('cfg-autosync').checked=CFG.autoSync!==false;
+  document.getElementById('cfg-ghlkey').value=CFG.ghlKey||'';
+  document.getElementById('cfg-ghlloc').value=CFG.ghlLoc||'';
+  document.getElementById('conn-result').textContent='';
+  document.getElementById('ghl-result').textContent='';
+  openM('modal-settings');
+}
+
+function saveSettings(){
+  CFG.webhook=document.getElementById('cfg-webhook').value.trim();
+  CFG.folderId=document.getElementById('cfg-folderid').value.trim();
+  CFG.autoSync=document.getElementById('cfg-autosync').checked;
+  CFG.ghlKey=document.getElementById('cfg-ghlkey').value.trim();
+  CFG.ghlLoc=document.getElementById('cfg-ghlloc').value.trim();
+  saveCfg();
+  closeM('modal-settings');
+  toast('Settings saved');
+}
+
+function testConnection(){
+  const url=document.getElementById('cfg-webhook').value.trim();
+  if(!url){document.getElementById('conn-result').innerHTML='<span style="color:#e53">Enter webhook URL first</span>';return;}
+  document.getElementById('conn-result').innerHTML='<span style="color:var(--ink3)">Testing…</span>';
+  fetch(url+'?action=ping',{method:'GET'})
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.ok) document.getElementById('conn-result').innerHTML='<span style="color:#2a9d2a">✓ Connected — '+d.message+'</span>';
+      else document.getElementById('conn-result').innerHTML='<span style="color:#e53">✗ '+d.error+'</span>';
+    })
+    .catch(()=>document.getElementById('conn-result').innerHTML='<span style="color:#e53">✗ Could not reach webhook. Check URL and CORS settings.</span>');
+}
+
+// ── DRIVE SYNC ENGINE ──
+let _syncTimer=null;
+
+function buildSyncPayload(jid){
+  const j=job(jid);if(!j)return null;
+  return {
+    action:'syncJob',
+    job:j,
+    pi:S.pi[jid]||{},
+    ci:S.ci[jid]||{}
+  };
+}
+
+function syncCurrentJob(manual){
+  if(!S.cj)return;
+  if(!CFG.webhook){
+    if(manual)toast('Set webhook URL in Settings first');
+    return;
+  }
+  const payload=buildSyncPayload(S.cj);
+  if(!payload)return;
+
+  const btn=document.getElementById('syncBtn');
+  if(btn)btn.classList.add('syncing');
+  setSyncStatus('Syncing…','var(--ink3)');
+
+  // Use no-cors form POST to bypass CORS — Apps Script accepts this
+  const formData=new FormData();
+  formData.append('action','syncJob');
+  formData.append('job',JSON.stringify(payload.job));
+  formData.append('pi',JSON.stringify(payload.pi||{}));
+  formData.append('ci',JSON.stringify(payload.ci||{}));
+  fetch(CFG.webhook,{method:'POST',body:formData,mode:'no-cors'})
+    .then(()=>{
+      // no-cors means we can't read the response, so assume success
+      const j=job(S.cj);
+      if(j){j.lastSync=new Date().toLocaleString('en-AU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});save();}
+      if(btn)btn.classList.remove('syncing');
+      setSyncStatus('Synced '+new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),'#2a9d2a');
+      if(manual){toast('Synced to Drive ✓');uploadPhotosToDrive(S.cj);pushQuoteToGHL(S.cj);}
+      renderJob();
+    })
+    .catch(err=>{
+      if(btn)btn.classList.remove('syncing');
+      setSyncStatus('Sync failed','#e53');
+      if(manual)toast('Sync failed — check connection');
+    });
+
+}
+
+function setSyncStatus(msg,color){
+  const el=document.getElementById('syncStatus');
+  if(el){el.textContent=msg;el.style.color=color;}
+}
+
+// Auto-sync disabled — sync only on manual button press
+function autoSync(){
+  // Intentionally disabled: sync happens only when user taps the sync button
+  // This prevents the Google Sheet from refreshing while you're viewing it
+}
+
+// save() already calls autoSync() — see _saveData above
+
+// ── DRIVE FOLDER LINK ──
+function driveLink(jid){
+  const j=job(jid);if(!j||!j.driveFolder)return '';
+  return j.driveFolder;
+}
+
+// ── RESTORE FROM DRIVE ──
+function restoreFromDrive(){
+  if(!CFG.webhook){toast('Set webhook URL in Settings first');return;}
+  const el=document.getElementById('restore-result');
+  if(el)el.textContent='Fetching jobs from Drive…';
+  fetch(CFG.webhook+'?action=getJobs',{method:'GET'})
+    .then(r=>r.json())
+    .then(d=>{
+      if(!d.ok){if(el)el.textContent='Error: '+(d.error||'unknown');return;}
+      const jobs=d.jobs||[];
+      if(!jobs.length){if(el)el.textContent='No jobs found in Drive.';return;}
+      let imported=0;
+      jobs.forEach(data=>{
+        if(!data.job||!data.job.id)return;
+        // Merge into local state — don't overwrite if newer local copy
+        const existing=job(data.job.id);
+        if(!existing){
+          S.jobs.push(data.job);
+          if(data.pi)S.pi[data.job.id]=data.pi;
+          if(data.ci)S.ci[data.job.id]=data.ci;
+          imported++;
+        }
+      });
+      _saveData();
+      if(el)el.innerHTML='<span style="color:#2a9d2a">✓ Restored '+imported+' new jobs ('+jobs.length+' total in Drive)</span>';
+      renderJobs();
+    })
+    .catch(()=>{if(el)el.textContent='Failed to reach Drive. Check webhook URL.';});
+}
+
+// ── UPLOAD PHOTOS TO DRIVE ──
+function uploadPhotosToDrive(jid){
+  const j=job(jid);
+  if(!j||!CFG.webhook)return;
+  const photos=j.areas.flatMap(a=>{
+    const ps=a.photos&&a.photos.length?a.photos:(a.photo?[a.photo]:[]);
+    return ps.map((p,i)=>({data:p,name:(a.name||'area')+'_photo'+(i+1)+'.jpg',areaName:a.name}));
+  });
+  if(!photos.length)return;
+  // Upload each photo sequentially (don't flood)
+  let idx=0;
+  function uploadNext(){
+    if(idx>=photos.length)return;
+    const ph=photos[idx++];
+    const fd=new FormData();
+    fd.append('action','savePhoto');
+    fd.append('jobId',j.id);
+    fd.append('jobAddress',j.address);
+    fd.append('photoData',ph.data);
+    fd.append('photoName',ph.name);
+    fetch(CFG.webhook,{method:'POST',body:fd,mode:'no-cors'})
+      .then(()=>setTimeout(uploadNext,800))
+      .catch(()=>setTimeout(uploadNext,800));
+  }
+  uploadNext();
+}
+
+// ── AUTO LOAD FROM DRIVE ON STARTUP ──
+function startupDriveLoad(){
+  if(!CFG.webhook||!CFG.autoSync)return;
+  // Only auto-restore if we have no jobs locally
+  if(S.jobs.length>0)return;
+  fetch(CFG.webhook+'?action=getJobs',{method:'GET'})
+    .then(r=>r.json())
+    .then(d=>{
+      if(!d.ok||!d.jobs||!d.jobs.length)return;
+      d.jobs.forEach(data=>{
+        if(!data.job||!data.job.id)return;
+        if(!job(data.job.id)){
+          S.jobs.push(data.job);
+          if(data.pi)S.pi[data.job.id]=data.pi;
+          if(data.ci)S.ci[data.job.id]=data.ci;
+        }
+      });
+      _saveData();
+      renderJobs();
+      toast('Jobs loaded from Drive ✓');
+    })
+    .catch(()=>{});
+}
+
+// ── GO HIGH LEVEL INTEGRATION ──
+let _ghlSearchTimer=null;
+
+function onGHLInput(){
+  clearTimeout(_ghlSearchTimer);
+  const v=document.getElementById('ghl-search-input').value.trim();
+  if(v.length<2){document.getElementById('ghl-results').innerHTML='';document.getElementById('ghl-results').classList.remove('open');return;}
+  _ghlSearchTimer=setTimeout(searchGHL,600);
+}
+
+function searchGHL(){
+  if(!CFG.ghlKey||!CFG.ghlLoc){toast('Enter GHL API Key and Location ID in Settings');return;}
+  if(!CFG.webhook){toast('Set webhook URL in Settings first');return;}
+  const q=document.getElementById('ghl-search-input').value.trim();
+  if(!q)return;
+  const btn=document.getElementById('ghl-search-btn');
+  btn.textContent='…';btn.disabled=true;
+  // Route via Apps Script to avoid CORS
+  fetch(CFG.webhook+'?action=ghlContacts&ghlKey='+encodeURIComponent(CFG.ghlKey)+'&ghlLoc='+encodeURIComponent(CFG.ghlLoc)+'&query='+encodeURIComponent(q))
+    .then(r=>r.json())
+    .then(d=>{
+      btn.textContent='Search';btn.disabled=false;
+      const contacts=(d.contacts||[]).slice(0,6);
+      const el=document.getElementById('ghl-results');
+      if(!d.ok||!contacts.length){
+        el.innerHTML='<div class="addr-item"><div class="addr-main" style="color:var(--ink3)">'+(d.error||'No contacts found')+'</div></div>';
+        el.classList.add('open');return;
+      }
+      el.innerHTML=contacts.map((c,i)=>{
+        const name=((c.firstName||'')+' '+(c.lastName||'')).trim();
+        const detail=[c.phone,c.email].filter(Boolean).join(' · ');
+        return '<div class="addr-item" onclick="pickGHLContact('+i+')" data-idx="'+i+'"><div class="addr-main">'+esc(name||'No name')+'</div><div class="addr-sub">'+esc(detail)+'</div></div>';
+      }).join('');
+      el._contacts=contacts;
+      el.classList.add('open');
+    })
+    .catch(()=>{btn.textContent='Search';btn.disabled=false;toast('Could not reach GHL via webhook');});
+}
+
+function pickGHLContact(idx){
+  const el=document.getElementById('ghl-results');
+  const contacts=el._contacts;
+  if(!contacts||!contacts[idx])return;
+  const c=contacts[idx];
+  _ghlContactId=c.id;
+  // Fill in the form fields
+  const name=((c.firstName||'')+' '+(c.lastName||'')).trim();
+  document.getElementById('nj-customer').value=name;
+  document.getElementById('nj-phone').value=c.phone||'';
+  document.getElementById('nj-email').value=c.email||'';
+  // Fill address if available
+  const addr=[c.address1,c.city,c.state,c.postalCode].filter(Boolean).join(', ');
+  if(addr&&!document.getElementById('nj-addr').value)document.getElementById('nj-addr').value=addr;
+  // Show contact card
+  document.getElementById('ghl-contact-name').textContent=name||'Contact linked';
+  document.getElementById('ghl-contact-detail').textContent=[c.phone,c.email].filter(Boolean).join(' · ');
+  document.getElementById('ghl-contact-card').style.display='block';
+  // Close results
+  el.classList.remove('open');el.innerHTML='';
+  document.getElementById('ghl-search-input').value='';
+}
+
+function clearGHLContact(){
+  _ghlContactId=null;
+  document.getElementById('ghl-contact-card').style.display='none';
+  document.getElementById('nj-customer').value='';
+  document.getElementById('nj-phone').value='';
+  document.getElementById('nj-email').value='';
+}
+
+function testGHL(){
+  const key=document.getElementById('cfg-ghlkey').value.trim();
+  const loc=document.getElementById('cfg-ghlloc').value.trim();
+  const el=document.getElementById('ghl-result');
+  if(!key||!loc){el.innerHTML='<span style="color:#e53">Enter both API Key and Location ID</span>';return;}
+  if(!CFG.webhook){el.innerHTML='<span style="color:#e53">Set webhook URL first (Drive Sync section above)</span>';return;}
+  el.innerHTML='<span style="color:var(--ink3)">Testing…</span>';
+  const fd=new FormData();
+  fd.append('action','ghlProxy');
+  fd.append('ghlAction','testLocation');
+  fd.append('ghlKey',key);
+  fd.append('ghlLoc',loc);
+  fetch(CFG.webhook,{method:'POST',body:fd,mode:'no-cors'})
+    .then(()=>{
+      // no-cors — can't read response, do a GET ping instead
+      fetch(CFG.webhook+'?action=ghlTest&ghlKey='+encodeURIComponent(key)+'&ghlLoc='+encodeURIComponent(loc))
+        .then(r=>r.json())
+        .then(d=>{
+          if(d.ok)el.innerHTML='<span style="color:#2a9d2a">✓ Connected — '+esc(d.name||'GHL')+'</span>';
+          else el.innerHTML='<span style="color:#e53">✗ '+(d.error||'Check API key and Location ID')+'</span>';
+        })
+        .catch(()=>el.innerHTML='<span style="color:#e53">✗ Could not verify — check credentials</span>');
+    })
+    .catch(()=>el.innerHTML='<span style="color:#e53">✗ Webhook not reachable</span>');
+}
+
+// Push quote total back to GHL opportunity
+function pushQuoteToGHL(jid){
+  const j=job(jid);
+  if(!j||!CFG.ghlKey||!j.ghlOpportunityId)return;
+  const ci=S.ci[jid]||{};
+  const pi=S.pi[jid]||{};
+  const areas=j.areas||[];
+  const totM2=areas.reduce((s,a)=>s+(parseFloat(a.m2)||0),0);
+  const floorWaste=pi.floorWaste!==undefined?parseFloat(pi.floorWaste):5;
+  const totM2W=totM2*(1+floorWaste/100);
+  const packSz=parseFloat(pi.packSize)||0;
+  const boxes=packSz>0?Math.ceil(totM2W/packSz):0;
+  const fpC=parseFloat(ci.fpCost)||0,instC=parseFloat(ci.instCost)||0;
+  const totEx=boxes*packSz*fpC+totM2*instC;
+  const mg=parseFloat(ci.margin)||0;
+  const mf=mg>0&&mg<100?1-mg/100:1;
+  const totSell=mf>0?totEx/mf:totEx;
+  const monetaryValue=Math.round(totSell*1.10*100)/100; // inc GST
+
+  if(!CFG.webhook)return;
+  const fd=new FormData();
+  fd.append('action','ghlUpdateOpportunity');
+  fd.append('ghlKey',CFG.ghlKey);
+  fd.append('opportunityId',j.ghlOpportunityId);
+  fd.append('monetaryValue',monetaryValue);
+  fetch(CFG.webhook,{method:'POST',body:fd,mode:'no-cors'}).catch(()=>{});
+}
+
+// INIT
+loadCfg();load();_loadPhotos();renderJobs();renderSidebarJobs();
+Object.keys(_ent).forEach(k=>renderEnt(k));
+// Auto-load from Drive if no local jobs
+setTimeout(startupDriveLoad,1200);
+// Detect desktop and show job view if a job was previously open
+if(window.innerWidth>=900 && S.cj){
+  setTimeout(()=>{openJob(S.cj);},100);
+} else if(window.innerWidth>=900){
+  // Show empty state on desktop — home is hidden, show sidebar
+  renderSidebarJobs();
+}
+</script>
+</body>
+</html>

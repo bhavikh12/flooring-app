@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Stepfast — Quote Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   TOKENS & RESET
+═══════════════════════════════════════════ */
+:root {
+  --navy:      #1a2e44;
+  --navy2:     #243650;
+  --navy3:     #0f1e2d;
+  --gold:      #c8922a;
+  --gold2:     #e8ab3a;
+  --gold-pale: #f5e6c8;
+  --cream:     #faf8f4;
+  --ink:       #1a2e44;
+  --ink2:      #4a5568;
+  --ink3:      #8a9ab0;
+  --white:     #ffffff;
+  --green:     #2d7a4f;
+  --green-bg:  #edf7f1;
+  --amber:     #b45309;
+  --amber-bg:  #fef3c7;
+  --red:       #c0392b;
+  --red-bg:    #fdecea;
+  --border:    #dde3ec;
+  --shadow:    0 2px 12px rgba(26,46,68,.10);
+  --shadow-lg: 0 8px 32px rgba(26,46,68,.15);
+  --r:         10px;
+  --r-lg:      16px;
+  --font-serif: "DM Serif Display", Georgia, serif;
+  --font-sans:  "DM Sans", system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; background: var(--cream); }
+body { font-family: var(--font-sans); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
+button { cursor: pointer; font-family: var(--font-sans); border: none; background: none; }
+input, select, textarea { font-family: var(--font-sans); }
+a { color: inherit; text-decoration: none; }
+
+/* ═══════════════════════════════════════════
+   LAYOUT SHELL
+═══════════════════════════════════════════ */
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* TOP NAV */
+.topnav {
+  background: var(--navy);
+  padding: 0 20px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 16px rgba(0,0,0,.25);
+}
+.topnav-brand {
+  display: flex; align-items: center; gap: 10px;
+}
+.topnav-logo {
+  width: 32px; height: 32px;
+  background: var(--gold);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif); font-size: 18px; color: var(--navy); font-weight: bold;
+}
+.topnav-title { font-family: var(--font-serif); font-size: 18px; color: var(--white); letter-spacing: .3px; }
+.topnav-sub { font-size: 11px; color: var(--ink3); font-weight: 400; }
+.topnav-actions { display: flex; gap: 8px; align-items: center; }
+.btn-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: rgba(255,255,255,.1);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--white); font-size: 16px; transition: background .15s;
+}
+.btn-icon:hover { background: rgba(255,255,255,.2); }
+.btn-icon.active { background: var(--gold); color: var(--navy); }
+
+/* TABS */
+.tabs {
+  background: var(--navy2);
+  display: flex;
+  border-bottom: 2px solid var(--navy3);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  padding: 10px 18px;
+  font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase;
+  color: var(--ink3); white-space: nowrap;
+  border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: color .15s, border-color .15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.tab:hover { color: var(--gold-pale); }
+.tab.active { color: var(--gold); border-color: var(--gold); }
+.tab-badge {
+  background: var(--gold); color: var(--navy);
+  font-size: 10px; font-weight: 700;
+  padding: 1px 5px; border-radius: 8px; min-width: 18px; text-align: center;
+}
+
+/* SCREENS */
+.screen { display: none; flex: 1; }
+.screen.active { display: block; }
+
+/* ═══════════════════════════════════════════
+   COMMON COMPONENTS
+═══════════════════════════════════════════ */
+.card {
+  background: var(--white); border-radius: var(--r-lg);
+  box-shadow: var(--shadow); padding: 20px;
+  border: 1px solid var(--border);
+}
+.section-title {
+  font-family: var(--font-serif); font-size: 20px; color: var(--navy);
+  margin-bottom: 4px;
+}
+.section-sub { font-size: 13px; color: var(--ink3); margin-bottom: 20px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+.form-row.single { grid-template-columns: 1fr; }
+@media(max-width:600px) { .form-row, .form-row.triple { grid-template-columns: 1fr; } }
+
+.field label {
+  display: block; font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .6px; color: var(--ink3); margin-bottom: 5px;
+}
+.field input, .field select, .field textarea {
+  width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+  border-radius: 8px; font-size: 14px; color: var(--ink);
+  background: var(--white); transition: border-color .15s;
+  appearance: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--gold);
+}
+.field textarea { resize: vertical; min-height: 80px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; letter-spacing: .3px;
+  transition: all .15s; cursor: pointer;
+}
+.btn-primary { background: var(--navy); color: var(--white); }
+.btn-primary:hover { background: var(--navy3); }
+.btn-gold { background: var(--gold); color: var(--navy); }
+.btn-gold:hover { background: var(--gold2); }
+.btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--ink2); }
+.btn-outline:hover { border-color: var(--navy); color: var(--navy); }
+.btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid #fca5a5; }
+.btn-danger:hover { background: #fee2e2; }
+.btn-sm { padding: 7px 12px; font-size: 12px; }
+.btn-lg { padding: 13px 24px; font-size: 15px; border-radius: 10px; }
+.btn-full { width: 100%; justify-content: center; }
+
+.tag {
+  display: inline-block; padding: 2px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+}
+.tag-hybrid  { background: #e0f2fe; color: #0369a1; }
+.tag-laminate { background: #f3e8ff; color: #7c3aed; }
+.tag-timber  { background: #fef3c7; color: #92400e; }
+.tag-vinyl   { background: #dcfce7; color: #166534; }
+
+.mode-pill {
+  display: inline-flex; border-radius: 20px; overflow: hidden;
+  border: 1.5px solid var(--border); background: var(--cream);
+}
+.mode-pill button {
+  padding: 4px 12px; font-size: 11px; font-weight: 600;
+  color: var(--ink3); transition: all .15s;
+}
+.mode-pill button.active { background: var(--navy); color: var(--white); }
+
+/* TOAST */
+#toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--navy3); color: var(--white);
+  padding: 10px 20px; border-radius: 30px; font-size: 13px; font-weight: 500;
+  opacity: 0; transition: all .25s; pointer-events: none; z-index: 999; white-space: nowrap;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* LOADING OVERLAY */
+#loader {
+  position: fixed; inset: 0; background: rgba(26,46,68,.7);
+  display: flex; align-items: center; justify-content: center; z-index: 9999;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+#loader.show { opacity: 1; pointer-events: all; }
+.loader-card {
+  background: var(--white); border-radius: var(--r-lg); padding: 32px 40px;
+  text-align: center; box-shadow: var(--shadow-lg);
+}
+.spinner {
+  width: 40px; height: 40px; border: 3px solid var(--border);
+  border-top-color: var(--gold); border-radius: 50%;
+  animation: spin .7s linear infinite; margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* EMPTY STATE */
+.empty {
+  text-align: center; padding: 60px 20px; color: var(--ink3);
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty h3 { font-family: var(--font-serif); font-size: 20px; color: var(--ink2); margin-bottom: 6px; }
+.empty p { font-size: 14px; }
+
+/* ═══════════════════════════════════════════
+   SCREEN: QUOTE BUILDER
+═══════════════════════════════════════════ */
+#screen-quote { padding: 20px; max-width: 900px; margin: 0 auto; }
+
+/* Job Info Card */
+.job-info-card {
+  background: var(--white); border-radius: var(--r-lg);
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+  margin-bottom: 16px; overflow: hidden;
+}
+.job-info-header {
+  background: var(--navy); padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.job-info-header h2 {
+  font-family: var(--font-serif); font-size: 17px; color: var(--white);
+}
+.job-info-body { padding: 16px 20px; }
+
+/* Product Search */
+.product-search-wrap { position: relative; margin-bottom: 12px; }
+.product-search-wrap input {
+  width: 100%; padding: 11px 16px 11px 40px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  font-size: 14px; color: var(--ink); background: var(--white);
+}
+.product-search-wrap input:focus { outline: none; border-color: var(--gold); }
+.search-icon {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  color: var(--ink3); font-size: 15px; pointer-events: none;
+}
+.product-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: 10px; box-shadow: var(--shadow-lg);
+  max-height: 280px; overflow-y: auto; z-index: 50; display: none;
+}
+.product-dropdown.open { display: block; }
+.prod-opt {
+  padding: 10px 14px; cursor: pointer; display: flex;
+  align-items: center; justify-content: space-between; gap: 8px;
+  border-bottom: 1px solid var(--border); transition: background .1s;
+}
+.prod-opt:last-child { border-bottom: none; }
+.prod-opt:hover { background: var(--cream); }
+.prod-opt-name { font-size: 13px; font-weight: 500; }
+.prod-opt-meta { font-size: 11px; color: var(--ink3); }
+.prod-opt-price { font-size: 13px; font-weight: 600; color: var(--navy); white-space: nowrap; }
+
+/* Line Items */
+.lines-wrap { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+.line-item {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-lg); overflow: hidden;
+  transition: box-shadow .15s;
+}
+.line-item:hover { box-shadow: var(--shadow); }
+.line-item.mode-si { border-left: 4px solid var(--navy); }
+.line-item.mode-s  { border-left: 4px solid var(--gold); }
+
+.line-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; background: var(--cream);
+  border-bottom: 1px solid var(--border);
+}
+.line-num {
+  width: 24px; height: 24px; background: var(--navy); color: var(--white);
+  border-radius: 50%; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.line-product-name { font-size: 14px; font-weight: 600; flex: 1; }
+.line-actions { display: flex; align-items: center; gap: 6px; }
+
+.line-body { padding: 12px 14px; }
+.line-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px;
+}
+@media(max-width:600px) { .line-grid { grid-template-columns: 1fr 1fr; } }
+
+.line-field label {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--ink3); display: block; margin-bottom: 4px;
+}
+.line-field input, .line-field select {
+  width: 100%; padding: 7px 10px; border: 1.5px solid var(--border);
+  border-radius: 7px; font-size: 13px; color: var(--ink); background: var(--white);
+}
+.line-field input:focus, .line-field select:focus { outline: none; border-color: var(--gold); }
+.line-field .computed {
+  padding: 7px 10px; border-radius: 7px; font-size: 13px;
+  font-weight: 600; background: var(--cream); color: var(--navy);
+  border: 1.5px solid transparent;
+}
+.line-margin {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; background: var(--cream); border-radius: 8px; margin-top: 8px;
+}
+.margin-item { text-align: center; }
+.margin-item .mlabel { font-size: 10px; color: var(--ink3); font-weight: 600; text-transform: uppercase; }
+.margin-item .mval { font-size: 14px; font-weight: 700; }
+.mval.good { color: var(--green); }
+.mval.ok   { color: var(--amber); }
+.mval.low  { color: var(--red); }
+
+/* Add line button */
+.add-line-btn {
+  border: 2px dashed var(--border); border-radius: var(--r-lg);
+  padding: 16px; text-align: center; color: var(--ink3);
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: all .15s; background: transparent; width: 100%;
+}
+.add-line-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-pale); }
+
+/* Extras section */
+.extras-section {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 16px; margin-bottom: 16px;
+}
+.extras-section h3 {
+  font-size: 13px; font-weight: 600; color: var(--ink2); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.extra-row {
+  display: grid; grid-template-columns: 1fr 80px 100px 28px;
+  gap: 8px; align-items: center; margin-bottom: 8px;
+}
+.extra-row select, .extra-row input {
+  padding: 7px 10px; border: 1.5px solid var(--border);
+  border-radius: 7px; font-size: 12px; width: 100%;
+}
+.extra-total { font-size: 13px; font-weight: 600; color: var(--navy); text-align: right; }
+.btn-del-extra {
+  width: 26px; height: 26px; border-radius: 6px;
+  background: var(--red-bg); color: var(--red); font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Quote Totals */
+.totals-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r-lg); overflow: hidden; margin-bottom: 20px;
+}
+.totals-header {
+  background: var(--navy); padding: 14px 20px;
+  font-family: var(--font-serif); font-size: 17px; color: var(--white);
+}
+.totals-body { padding: 16px 20px; }
+.totals-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+}
+.totals-row:last-child { border-bottom: none; }
+.totals-row.grand {
+  font-size: 18px; font-weight: 700; color: var(--navy);
+  border-top: 2px solid var(--navy); padding-top: 14px; margin-top: 4px;
+}
+.totals-row .label { color: var(--ink2); }
+.totals-row .amount { font-weight: 600; font-family: var(--font-serif); }
+.margin-summary {
+  margin-top: 12px; padding: 12px; background: var(--green-bg);
+  border-radius: 8px; display: flex; justify-content: space-around;
+}
+.margin-summary.hidden { display: none; }
+
+/* Quote Actions */
+.quote-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ═══════════════════════════════════════════
+   SCREEN: JOBS
+═══════════════════════════════════════════ */
+#screen-jobs { padding: 20px; max-width: 900px; margin: 0 auto; }
+.jobs-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+}
+.job-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 16px 20px; margin-bottom: 10px;
+  cursor: pointer; transition: box-shadow .15s, border-color .15s;
+  display: flex; align-items: center; gap: 14px;
+}
+.job-card:hover { box-shadow: var(--shadow); border-color: var(--gold); }
+.job-avatar {
+  width: 44px; height: 44px; border-radius: 50%; background: var(--navy);
+  color: var(--gold); font-family: var(--font-serif); font-size: 18px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.job-info { flex: 1; min-width: 0; }
+.job-name { font-size: 15px; font-weight: 600; }
+.job-addr { font-size: 12px; color: var(--ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-meta { text-align: right; flex-shrink: 0; }
+.job-status {
+  font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 12px;
+}
+.status-lead     { background: #dbeafe; color: #1d4ed8; }
+.status-quoted   { background: var(--amber-bg); color: var(--amber); }
+.status-won      { background: var(--green-bg); color: var(--green); }
+.status-lost     { background: var(--red-bg); color: var(--red); }
+
+/* New Job Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(26,46,68,.6);
+  z-index: 200; display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+  padding: 20px;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--white); border-radius: var(--r-lg);
+  width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(20px); transition: transform .2s;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-header {
+  background: var(--navy); padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+.modal-header h3 { font-family: var(--font-serif); font-size: 18px; color: var(--white); }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ═══════════════════════════════════════════
+   SCREEN: PRODUCTS ADMIN
+═══════════════════════════════════════════ */
+#screen-products { padding: 20px; max-width: 1000px; margin: 0 auto; }
+.product-filters {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.filter-btn {
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  border: 1.5px solid var(--border); color: var(--ink3); transition: all .15s;
+}
+.filter-btn:hover, .filter-btn.active { 
+  background: var(--navy); border-color: var(--navy); color: var(--white);
+}
+.products-table { overflow-x: auto; }
+.prod-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+  background: var(--white); border-radius: var(--r-lg); overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.prod-table th {
+  background: var(--navy); color: var(--gold);
+  padding: 10px 12px; text-align: left; font-size: 11px;
+  font-weight: 600; letter-spacing: .5px; white-space: nowrap;
+}
+.prod-table td {
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.prod-table tr:last-child td { border-bottom: none; }
+.prod-table tr:hover td { background: var(--cream); }
+.editable-cell input {
+  width: 80px; padding: 4px 7px; border: 1.5px solid var(--border);
+  border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--navy);
+}
+.editable-cell input:focus { outline: none; border-color: var(--gold); }
+
+/* ═══════════════════════════════════════════
+   SCREEN: QUOTES LIST
+═══════════════════════════════════════════ */
+#screen-quotes { padding: 20px; max-width: 900px; margin: 0 auto; }
+.quote-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 16px 20px; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 14px; cursor: pointer;
+  transition: box-shadow .15s, border-color .15s;
+}
+.quote-card:hover { box-shadow: var(--shadow); border-color: var(--navy); }
+.quote-id-badge {
+  background: var(--navy); color: var(--gold);
+  font-family: var(--font-serif); font-size: 11px; padding: 4px 8px;
+  border-radius: 6px; flex-shrink: 0;
+}
+.quote-info { flex: 1; min-width: 0; }
+.quote-client { font-size: 15px; font-weight: 600; }
+.quote-addr { font-size: 12px; color: var(--ink3); }
+.quote-amount { font-family: var(--font-serif); font-size: 18px; color: var(--navy); font-weight: 700; }
+.quote-date { font-size: 11px; color: var(--ink3); }
+
+/* ═══════════════════════════════════════════
+   SCREEN: SETTINGS
+═══════════════════════════════════════════ */
+#screen-settings { padding: 20px; max-width: 600px; margin: 0 auto; }
+.settings-section { margin-bottom: 24px; }
+.settings-section h3 {
+  font-family: var(--font-serif); font-size: 16px; color: var(--navy);
+  margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.api-status {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  margin-bottom: 12px;
+}
+.api-status.ok  { background: var(--green-bg); color: var(--green); }
+.api-status.err { background: var(--red-bg); color: var(--red); }
+.api-status.checking { background: var(--amber-bg); color: var(--amber); }
+
+/* ═══════════════════════════════════════════
+   BOTTOM NAV (mobile)
+═══════════════════════════════════════════ */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--white); border-top: 1px solid var(--border);
+  display: none; z-index: 100;
+  box-shadow: 0 -4px 20px rgba(26,46,68,.1);
+}
+@media(max-width:700px) {
+  .bottom-nav { display: flex; }
+  .tabs { display: none; }
+  #screen-quote, #screen-jobs, #screen-products, #screen-quotes, #screen-settings {
+    padding-bottom: 80px;
+  }
+}
+.bnav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 10px 4px 14px; font-size: 10px; font-weight: 600;
+  color: var(--ink3); letter-spacing: .3px; text-transform: uppercase;
+  transition: color .15s;
+}
+.bnav-item.active { color: var(--gold); }
+.bnav-icon { font-size: 20px; margin-bottom: 3px; }
+
+/* Margin toggle */
+.margin-toggle-wrap {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--ink3); font-weight: 500;
+}
+.toggle-switch {
+  position: relative; width: 36px; height: 20px;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0; background: var(--border);
+  border-radius: 20px; cursor: pointer; transition: .2s;
+}
+.toggle-slider:before {
+  content: ""; position: absolute;
+  width: 14px; height: 14px; left: 3px; bottom: 3px;
+  background: var(--white); border-radius: 50%; transition: .2s;
+}
+input:checked + .toggle-slider { background: var(--navy); }
+input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+/* GHL search */
+.ghl-result-item {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background .1s;
+}
+.ghl-result-item:hover { background: var(--cream); }
+.ghl-result-item:last-child { border-bottom: none; }
+.ghl-name { font-size: 14px; font-weight: 600; }
+.ghl-sub  { font-size: 12px; color: var(--ink3); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP NAV -->
+  <nav class="topnav">
+    <div class="topnav-brand">
+      <div class="topnav-logo">S</div>
+      <div>
+        <div class="topnav-title">Stepfast</div>
+        <div class="topnav-sub">Quote Builder</div>
+      </div>
+    </div>
+    <div class="topnav-actions">
+      <div class="margin-toggle-wrap">
+        <span>Margins</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="margin-toggle" onchange="toggleMargins()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button class="btn-icon" onclick="showNewJobModal()" title="New Job">＋</button>
+    </div>
+  </nav>
+
+  <!-- DESKTOP TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showScreen('quote')" id="tab-quote">📋 Quote Builder</button>
+    <button class="tab" onclick="showScreen('jobs')"  id="tab-jobs">👤 Jobs</button>
+    <button class="tab" onclick="showScreen('quotes')" id="tab-quotes">📄 Quotes <span class="tab-badge" id="quotes-count">0</span></button>
+    <button class="tab" onclick="showScreen('products')" id="tab-products">📦 Products</button>
+    <button class="tab" onclick="showScreen('settings')" id="tab-settings">⚙️ Settings</button>
+  </div>
+
+  <!-- ═══════════════════════════ QUOTE BUILDER ═══════════════════════════ -->
+  <div class="screen active" id="screen-quote">
+    <div style="padding:20px;max-width:900px;margin:0 auto">
+
+      <!-- Job Info -->
+      <div class="job-info-card">
+        <div class="job-info-header">
+          <h2>Job Details</h2>
+          <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff" onclick="showGHLSearch()">🔍 Find Client</button>
+        </div>
+        <div class="job-info-body">
+          <div class="form-row">
+            <div class="field"><label>Client Name</label><input id="q-client" placeholder="e.g. John Smith"></div>
+            <div class="field"><label>Phone</label><input id="q-phone" type="tel" placeholder="04xx xxx xxx"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Email</label><input id="q-email" type="email" placeholder="john@email.com"></div>
+            <div class="field"><label>Address</label><input id="q-address" placeholder="123 Street, Suburb WA"></div>
+          </div>
+          <div class="form-row triple">
+            <div class="field">
+              <label>Consultant</label>
+              <select id="q-consultant">
+                <option>Bhavik</option><option>Dhruv</option><option>Paresh</option>
+              </select>
+            </div>
+            <div class="field"><label>Quote Date</label><input id="q-date" type="date"></div>
+            <div class="field">
+              <label>Waste Factor</label>
+              <select id="q-waste">
+                <option value="0.05">5%</option>
+                <option value="0.10" selected>10%</option>
+                <option value="0.12">12%</option>
+                <option value="0.15">15%</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Search -->
+      <div style="margin-bottom:10px;">
+        <div class="product-search-wrap">
+          <span class="search-icon">🔍</span>
+          <input id="prod-search" placeholder="Search products to add a line item…" 
+                 oninput="searchProducts(this.value)" onfocus="searchProducts(this.value)" autocomplete="off">
+          <div class="product-dropdown" id="prod-dropdown"></div>
+        </div>
+      </div>
+
+      <!-- Line Items -->
+      <div class="lines-wrap" id="lines-wrap"></div>
+      <button class="add-line-btn" onclick="document.getElementById('prod-search').focus()">
+        + Add Product Line
+      </button>
+
+      <!-- Extras -->
+      <div class="extras-section" style="margin-top:16px">
+        <h3>⚙️ Extras & Additional Works <button class="btn btn-sm btn-outline" style="margin-left:auto" onclick="addExtra()">+ Add</button></h3>
+        <div id="extras-wrap"></div>
+      </div>
+
+      <!-- Totals -->
+      <div class="totals-card">
+        <div class="totals-header">Quote Summary</div>
+        <div class="totals-body">
+          <div class="totals-row"><span class="label">Supply Total (Ex GST)</span><span class="amount" id="t-supply-ex">$0.00</span></div>
+          <div class="totals-row"><span class="label">Install Total (Ex GST)</span><span class="amount" id="t-install-ex">$0.00</span></div>
+          <div class="totals-row"><span class="label">Extras (Ex GST)</span><span class="amount" id="t-extras-ex">$0.00</span></div>
+          <div class="totals-row"><span class="label">Subtotal (Ex GST)</span><span class="amount" id="t-sub-ex">$0.00</span></div>
+          <div class="totals-row"><span class="label">GST (10%)</span><span class="amount" id="t-gst">$0.00</span></div>
+          <div class="totals-row grand"><span class="label">TOTAL INC GST</span><span class="amount" id="t-total">$0.00</span></div>
+          <div class="margin-summary hidden" id="margin-summary">
+            <div class="margin-item"><div class="mlabel">Supply Margin</div><div class="mval" id="ms-supply">—</div></div>
+            <div class="margin-item"><div class="mlabel">Blended Margin</div><div class="mval" id="ms-blended">—</div></div>
+            <div class="margin-item"><div class="mlabel">Net Profit Est.</div><div class="mval" id="ms-profit">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="quote-actions">
+        <button class="btn btn-gold btn-lg" onclick="saveQuote()">💾 Save Quote</button>
+        <button class="btn btn-primary btn-lg" onclick="exportQuote()">📤 Export PDF</button>
+        <button class="btn btn-outline btn-lg" onclick="pushToGHL()">🔗 Push to GHL</button>
+        <button class="btn btn-outline" onclick="clearQuote()">🗑 Clear</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ JOBS ═══════════════════════════ -->
+  <div class="screen" id="screen-jobs">
+    <div class="jobs-header">
+      <div>
+        <div class="section-title">Jobs</div>
+        <div class="section-sub">All clients and projects</div>
+      </div>
+      <button class="btn btn-gold" onclick="showNewJobModal()">+ New Job</button>
+    </div>
+    <div id="jobs-list"><div class="empty"><div class="empty-icon">👤</div><h3>No jobs yet</h3><p>Create a new job to get started</p></div></div>
+  </div>
+
+  <!-- ═══════════════════════════ QUOTES ═══════════════════════════ -->
+  <div class="screen" id="screen-quotes">
+    <div style="margin-bottom:16px;">
+      <div class="section-title">Saved Quotes</div>
+      <div class="section-sub">All generated quotes</div>
+    </div>
+    <div id="quotes-list"><div class="empty"><div class="empty-icon">📄</div><h3>No quotes yet</h3><p>Build a quote to see it here</p></div></div>
+  </div>
+
+  <!-- ═══════════════════════════ PRODUCTS ═══════════════════════════ -->
+  <div class="screen" id="screen-products">
+    <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <div class="section-title">Product Catalogue</div>
+        <div class="section-sub">Live pricing from Google Sheet — edit prices directly in the sheet</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="loadProducts(true)">↻ Refresh</button>
+    </div>
+    <div class="product-filters" id="cat-filters">
+      <button class="filter-btn active" onclick="filterProducts('all',this)">All</button>
+      <button class="filter-btn" onclick="filterProducts('Hybrid',this)">Hybrid</button>
+      <button class="filter-btn" onclick="filterProducts('Laminate',this)">Laminate</button>
+      <button class="filter-btn" onclick="filterProducts('Timber',this)">Timber</button>
+      <button class="filter-btn" onclick="filterProducts('Vinyl',this)">Vinyl</button>
+    </div>
+    <div class="products-table"><div id="products-table-body"></div></div>
+  </div>
+
+  <!-- ═══════════════════════════ SETTINGS ═══════════════════════════ -->
+  <div class="screen" id="screen-settings">
+    <div class="section-title" style="margin-bottom:4px">Settings</div>
+    <div class="section-sub">Backend connection & defaults</div>
+
+    <div class="settings-section">
+      <h3>🔗 Backend Connection</h3>
+      <div id="api-status-display" class="api-status checking">⏳ Checking connection…</div>
+      <div class="field" style="margin-bottom:10px">
+        <label>Apps Script Web App URL</label>
+        <input id="setting-webhook" type="url" placeholder="https://script.google.com/macros/s/…/exec">
+      </div>
+      <button class="btn btn-primary" onclick="saveWebhook()">Save & Test</button>
+    </div>
+
+    <div class="settings-section">
+      <h3>🏢 Business Details</h3>
+      <div class="form-row">
+        <div class="field"><label>Business Name</label><input id="s-bizname" placeholder="Stepfast Flooring"></div>
+        <div class="field"><label>Phone</label><input id="s-phone"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Email</label><input id="s-email"></div>
+        <div class="field"><label>Address</label><input id="s-address"></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveBusinessSettings()">Save Settings</button>
+    </div>
+
+    <div class="settings-section">
+      <h3>📊 Data</h3>
+      <button class="btn btn-outline" onclick="loadAll(true)">↻ Reload All Data from Sheet</button>
+      <div style="margin-top:12px;font-size:12px;color:var(--ink3)" id="data-stats"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV (mobile) -->
+  <nav class="bottom-nav">
+    <button class="bnav-item active" id="bnav-quote" onclick="showScreen('quote')"><span class="bnav-icon">📋</span>Quote</button>
+    <button class="bnav-item" id="bnav-jobs" onclick="showScreen('jobs')"><span class="bnav-icon">👤</span>Jobs</button>
+    <button class="bnav-item" id="bnav-quotes" onclick="showScreen('quotes')"><span class="bnav-icon">📄</span>Quotes</button>
+    <button class="bnav-item" id="bnav-products" onclick="showScreen('products')"><span class="bnav-icon">📦</span>Products</button>
+    <button class="bnav-item" id="bnav-settings" onclick="showScreen('settings')"><span class="bnav-icon">⚙️</span>Settings</button>
+  </nav>
+</div>
+
+<!-- NEW JOB MODAL -->
+<div class="modal-overlay" id="modal-new-job">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>New Job</h3>
+      <button class="btn-icon" onclick="closeModal('modal-new-job')" style="color:#fff">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="field"><label>Client Name *</label><input id="nj-name" placeholder="John Smith"></div>
+        <div class="field"><label>Phone</label><input id="nj-phone" type="tel"></div>
+      </div>
+      <div class="form-row single">
+        <div class="field"><label>Email</label><input id="nj-email" type="email"></div>
+      </div>
+      <div class="form-row single">
+        <div class="field"><label>Address</label><input id="nj-address" placeholder="123 Street, Suburb WA"></div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Consultant</label>
+          <select id="nj-consultant">
+            <option>Bhavik</option><option>Dhruv</option><option>Paresh</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="nj-status">
+            <option>Lead</option><option>Quoted</option><option>Won</option><option>Lost</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="field"><label>Notes</label><textarea id="nj-notes" rows="3" placeholder="Site notes, access, product interest…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-new-job')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveNewJob()">Create Job →</button>
+    </div>
+  </div>
+</div>
+
+<!-- GHL SEARCH MODAL -->
+<div class="modal-overlay" id="modal-ghl">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>🔍 Find Client in GHL</h3>
+      <button class="btn-icon" onclick="closeModal('modal-ghl')" style="color:#fff">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field" style="margin-bottom:12px">
+        <input id="ghl-search-input" placeholder="Search by name, phone or email…" oninput="ghlSearch(this.value)">
+      </div>
+      <div id="ghl-results"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="modal-export">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <h3>📤 Quote Export</h3>
+      <button class="btn-icon" onclick="closeModal('modal-export')" style="color:#fff">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="export-content" style="font-family:var(--font-sans);font-size:13px;line-height:1.7"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="copyExport()">📋 Copy Text</button>
+      <button class="btn btn-gold" onclick="printExport()">🖨 Print / PDF</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-export')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING + TOAST -->
+<div id="loader"><div class="loader-card"><div class="spinner"></div><div id="loader-msg" style="font-size:14px;color:var(--ink2)">Loading…</div></div></div>
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════════
+const WEBHOOK = "https://script.google.com/macros/s/AKfycbx3BtHxCo1EIHjTP4h3exArslRbY2VYykj_nef2o9qgnPKpFxUkEc-vNVL54TCIVprmJg/exec";
+let STATE = {
+  products: [],
+  rates: [],
+  extras_catalog: [],
+  accessories: [],
+  settings: {},
+  jobs: [],
+  quotes: [],
+  lines: [],       // current quote lines
+  extras: [],      // current quote extras
+  showMargins: false,
+  currentJob: null,
+};
+
+// ════════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════════
+window.addEventListener("DOMContentLoaded", async () => {
+  document.getElementById("q-date").value = new Date().toISOString().split("T")[0];
+  document.getElementById("setting-webhook").value = WEBHOOK;
+  await loadAll();
+});
+
+async function loadAll(force = false) {
+  showLoader("Loading Stepfast data…");
+  try {
+    const [prods, rates, extras, jobs, quotes, settings] = await Promise.all([
+      api("getProducts"), api("getInstallRates"), api("getExtras"),
+      api("getJobs"), api("getQuotes"), api("getSettings")
+    ]);
+    STATE.products       = prods.data || [];
+    STATE.rates          = rates.data || [];
+    STATE.extras_catalog = extras.data || [];
+    STATE.jobs           = jobs.data || [];
+    STATE.quotes         = quotes.data || [];
+    STATE.settings       = settings.data || {};
+
+    renderJobs(); renderQuotes(); renderProductsTable();
+    document.getElementById("quotes-count").textContent = STATE.quotes.length;
+    document.getElementById("data-stats").textContent =
+      `${STATE.products.length} products · ${STATE.jobs.length} jobs · ${STATE.quotes.length} quotes loaded`;
+    setApiStatus(true);
+  } catch(e) {
+    setApiStatus(false, e.message);
+    toast("⚠ Could not load data — check Settings");
+  }
+  hideLoader();
+}
+
+// ════════════════════════════════════════════════════════════
+// API
+// ════════════════════════════════════════════════════════════
+async function api(action, params = {}) {
+  const url = new URL(WEBHOOK);
+  url.searchParams.set("action", action);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url);
+  return res.json();
+}
+
+async function apiPost(body) {
+  const res = await fetch(WEBHOOK, {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json" }
+  });
+  return res.json();
+}
+
+// ════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".bnav-item").forEach(b => b.classList.remove("active"));
+  document.getElementById("screen-" + name).classList.add("active");
+  const tab = document.getElementById("tab-" + name);
+  if (tab) tab.classList.add("active");
+  const bnav = document.getElementById("bnav-" + name);
+  if (bnav) bnav.classList.add("active");
+}
+
+// ════════════════════════════════════════════════════════════
+// PRODUCT SEARCH + LINE ITEMS
+// ════════════════════════════════════════════════════════════
+let searchTimer;
+function searchProducts(q) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    const dd = document.getElementById("prod-dropdown");
+    if (!q || q.length < 2) { dd.classList.remove("open"); return; }
+    const matches = STATE.products
+      .filter(p => p.name.toLowerCase().includes(q.toLowerCase()))
+      .slice(0, 12);
+    if (!matches.length) { dd.innerHTML = "<div class='prod-opt'><span class='prod-opt-meta'>No products found</span></div>"; dd.classList.add("open"); return; }
+    dd.innerHTML = matches.map(p => `
+      <div class="prod-opt" onclick="addLine('${p.id}')">
+        <div>
+          <div class="prod-opt-name">${p.name}</div>
+          <div class="prod-opt-meta">${p.installType} · ${p.boardSize || ""}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="prod-opt-price">$${n(p.supplyExGST)}/m²</div>
+          <span class="tag tag-${p.category.toLowerCase()}">${p.category}</span>
+        </div>
+      </div>`).join("");
+    dd.classList.add("open");
+  }, 200);
+}
+
+document.addEventListener("click", e => {
+  if (!e.target.closest(".product-search-wrap")) {
+    document.getElementById("prod-dropdown").classList.remove("open");
+  }
+});
+
+function addLine(productId) {
+  const prod = STATE.products.find(p => p.id === productId);
+  if (!prod) return;
+  const line = {
+    id: Date.now(),
+    productId: prod.id,
+    productName: prod.name,
+    category: prod.category,
+    installType: prod.installType,
+    areaM2: "",
+    mode: "SI",   // S = supply only, SI = supply & install
+    customInstallRate: null,
+    product: prod,
+  };
+  STATE.lines.push(line);
+  document.getElementById("prod-search").value = "";
+  document.getElementById("prod-dropdown").classList.remove("open");
+  renderLines();
+  recalcTotals();
+}
+
+function removeLine(id) {
+  STATE.lines = STATE.lines.filter(l => l.id !== id);
+  renderLines(); recalcTotals();
+}
+
+function updateLine(id, field, value) {
+  const line = STATE.lines.find(l => l.id === id);
+  if (!line) return;
+  line[field] = value;
+  renderLines(); recalcTotals();
+}
+
+function renderLines() {
+  const wrap = document.getElementById("lines-wrap");
+  if (!STATE.lines.length) { wrap.innerHTML = ""; return; }
+  const waste = parseFloat(document.getElementById("q-waste").value);
+
+  wrap.innerHTML = STATE.lines.map((line, idx) => {
+    const prod = line.product;
+    const area = parseFloat(line.areaM2) || 0;
+    const orderM2 = area > 0 ? area * (1 + waste) : 0;
+    const supplyEx = orderM2 * (parseFloat(prod.supplyExGST) || 0);
+    const supplyInc = supplyEx * 1.1;
+    const installRate = line.customInstallRate !== null ? parseFloat(line.customInstallRate) : (parseFloat(prod.installRateExGST) || 0);
+    const installedEx = supplyEx + (installRate * orderM2);
+    const installedInc = installedEx * 1.1;
+    const costEx = (parseFloat(prod.costExGST) || 0) * orderM2;
+    const supplyMargin = supplyEx > 0 ? ((supplyEx - costEx) / supplyEx * 100) : 0;
+    const installMargin = installedEx > 0 ? ((installedEx - costEx - installRate * orderM2) / installedEx * 100) : 0;
+
+    const displayTotal = line.mode === "SI" ? installedInc : supplyInc;
+
+    return `<div class="line-item mode-${line.mode.toLowerCase()}" id="line-${line.id}">
+      <div class="line-header">
+        <div class="line-num">${idx+1}</div>
+        <div style="flex:1">
+          <div class="line-product-name">${prod.name}</div>
+          <span class="tag tag-${prod.category.toLowerCase()}">${prod.category}</span>
+          <span style="font-size:11px;color:var(--ink3);margin-left:6px">${prod.installType}</span>
+        </div>
+        <div class="line-actions">
+          <div class="mode-pill">
+            <button class="${line.mode==='S'?'active':''}" onclick="updateLine(${line.id},'mode','S')">Supply</button>
+            <button class="${line.mode==='SI'?'active':''}" onclick="updateLine(${line.id},'mode','SI')">S & Install</button>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="removeLine(${line.id})">✕</button>
+        </div>
+      </div>
+      <div class="line-body">
+        <div class="line-grid">
+          <div class="line-field">
+            <label>Area m²</label>
+            <input type="number" step="0.1" value="${line.areaM2}" placeholder="0.00"
+              onchange="updateLine(${line.id},'areaM2',this.value)">
+          </div>
+          <div class="line-field">
+            <label>Room / Area</label>
+            <input type="text" value="${line.room||''}" placeholder="e.g. Lounge"
+              onchange="updateLine(${line.id},'room',this.value)">
+          </div>
+          <div class="line-field">
+            <label>Install Rate /m²</label>
+            <input type="number" step="1" value="${line.customInstallRate !== null ? line.customInstallRate : installRate}" placeholder="${installRate}"
+              onchange="updateLine(${line.id},'customInstallRate',this.value)">
+          </div>
+          <div class="line-field">
+            <label>${line.mode==='SI'?'Installed INC GST':'Supply INC GST'}</label>
+            <div class="computed">${area>0?'$'+n(displayTotal):'—'}</div>
+          </div>
+        </div>
+        ${area > 0 ? `
+        <div class="line-margin" style="${STATE.showMargins?'':'display:none'}">
+          <div class="margin-item">
+            <div class="mlabel">Supply /m² Ex</div>
+            <div class="mval">$${n(parseFloat(prod.supplyExGST)||0)}</div>
+          </div>
+          <div class="margin-item">
+            <div class="mlabel">Order m²</div>
+            <div class="mval">${orderM2.toFixed(2)}</div>
+          </div>
+          <div class="margin-item">
+            <div class="mlabel">Supply Margin</div>
+            <div class="mval ${marginClass(supplyMargin)}">${supplyMargin.toFixed(1)}%</div>
+          </div>
+          ${line.mode==='SI'?`
+          <div class="margin-item">
+            <div class="mlabel">Install Margin</div>
+            <div class="mval ${marginClass(installMargin)}">${installMargin.toFixed(1)}%</div>
+          </div>`:''}
+          <div class="margin-item">
+            <div class="mlabel">Line Total</div>
+            <div class="mval" style="color:var(--navy)">$${n(displayTotal)}</div>
+          </div>
+        </div>` : ''}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function marginClass(pct) {
+  if (pct >= 22) return "good";
+  if (pct >= 15) return "ok";
+  return "low";
+}
+
+// ════════════════════════════════════════════════════════════
+// EXTRAS
+// ════════════════════════════════════════════════════════════
+function addExtra() {
+  STATE.extras.push({ id: Date.now(), name: "", unit: "m²", qty: 1, rate: 0 });
+  renderExtras();
+}
+
+function removeExtra(id) {
+  STATE.extras = STATE.extras.filter(e => e.id !== id);
+  renderExtras(); recalcTotals();
+}
+
+function updateExtra(id, field, value) {
+  const ex = STATE.extras.find(e => e.id === id);
+  if (!ex) return;
+  if (field === "name") {
+    const cat = STATE.extras_catalog.find(c => c.name === value);
+    if (cat) { ex.rate = parseFloat(cat.rateExGST)||0; ex.unit = cat.unit||"m²"; }
+  }
+  ex[field] = value;
+  renderExtras(); recalcTotals();
+}
+
+function renderExtras() {
+  const wrap = document.getElementById("extras-wrap");
+  if (!STATE.extras.length) { wrap.innerHTML = ""; return; }
+  const opts = STATE.extras_catalog.map(c => `<option value="${esc(c.name)}">${esc(c.name)} — ${esc(c.unit)}</option>`).join("");
+  wrap.innerHTML = STATE.extras.map(ex => {
+    const total = (parseFloat(ex.qty)||0) * (parseFloat(ex.rate)||0);
+    return `<div class="extra-row">
+      <select onchange="updateExtra(${ex.id},'name',this.value)">
+        <option value="">— Select extra —</option>${opts}
+      </select>
+      <input type="number" step="0.1" value="${ex.qty||1}" placeholder="Qty" onchange="updateExtra(${ex.id},'qty',this.value)">
+      <input type="number" step="0.01" value="${ex.rate||''}" placeholder="Rate" onchange="updateExtra(${ex.id},'rate',this.value)">
+      <button class="btn-del-extra" onclick="removeExtra(${ex.id})">✕</button>
+    </div>`;
+  }).join("");
+}
+
+// ════════════════════════════════════════════════════════════
+// TOTALS
+// ════════════════════════════════════════════════════════════
+function recalcTotals() {
+  const waste = parseFloat(document.getElementById("q-waste").value);
+  let supplyEx = 0, installEx = 0, costEx = 0;
+
+  STATE.lines.forEach(line => {
+    const prod = line.product;
+    const area = parseFloat(line.areaM2) || 0;
+    if (!area) return;
+    const orderM2 = area * (1 + waste);
+    const lineSupplyEx = orderM2 * (parseFloat(prod.supplyExGST)||0);
+    const installRate = line.customInstallRate !== null ? parseFloat(line.customInstallRate) : (parseFloat(prod.installRateExGST)||0);
+    supplyEx += lineSupplyEx;
+    if (line.mode === "SI") installEx += installRate * orderM2;
+    costEx += (parseFloat(prod.costExGST)||0) * orderM2;
+  });
+
+  const extrasEx = STATE.extras.reduce((s,e) => s + (parseFloat(e.qty)||0)*(parseFloat(e.rate)||0), 0);
+  const subEx = supplyEx + installEx + extrasEx;
+  const gst = subEx * 0.1;
+  const total = subEx + gst;
+
+  document.getElementById("t-supply-ex").textContent  = "$" + n(supplyEx);
+  document.getElementById("t-install-ex").textContent = "$" + n(installEx);
+  document.getElementById("t-extras-ex").textContent  = "$" + n(extrasEx);
+  document.getElementById("t-sub-ex").textContent     = "$" + n(subEx);
+  document.getElementById("t-gst").textContent        = "$" + n(gst);
+  document.getElementById("t-total").textContent      = "$" + n(total);
+
+  // Margin summary
+  if (STATE.showMargins && subEx > 0) {
+    const supplyMarginPct = supplyEx > 0 ? (supplyEx - costEx) / supplyEx * 100 : 0;
+    const blendedMarginPct = (subEx - costEx) / subEx * 100;
+    const profitEst = subEx - costEx;
+    document.getElementById("ms-supply").textContent  = supplyMarginPct.toFixed(1) + "%";
+    document.getElementById("ms-supply").className    = "mval " + marginClass(supplyMarginPct);
+    document.getElementById("ms-blended").textContent = blendedMarginPct.toFixed(1) + "%";
+    document.getElementById("ms-blended").className   = "mval " + marginClass(blendedMarginPct);
+    document.getElementById("ms-profit").textContent  = "$" + n(profitEst);
+    document.getElementById("ms-profit").className    = "mval good";
+    document.getElementById("margin-summary").classList.remove("hidden");
+  } else {
+    document.getElementById("margin-summary").classList.add("hidden");
+  }
+}
+
+function toggleMargins() {
+  STATE.showMargins = document.getElementById("margin-toggle").checked;
+  renderLines(); recalcTotals();
+}
+
+// ════════════════════════════════════════════════════════════
+// SAVE QUOTE
+// ════════════════════════════════════════════════════════════
+async function saveQuote() {
+  const client = document.getElementById("q-client").value.trim();
+  if (!client) { toast("Enter a client name first"); return; }
+  if (!STATE.lines.length) { toast("Add at least one product line"); return; }
+
+  showLoader("Saving quote…");
+  const waste = parseFloat(document.getElementById("q-waste").value);
+  let supplyEx=0, installEx=0, costEx=0;
+
+  const lines = STATE.lines.map((line, idx) => {
+    const prod = line.product;
+    const area = parseFloat(line.areaM2)||0;
+    const orderM2 = area * (1+waste);
+    const lineSupplyEx = orderM2 * (parseFloat(prod.supplyExGST)||0);
+    const installRate = line.customInstallRate !== null ? parseFloat(line.customInstallRate) : (parseFloat(prod.installRateExGST)||0);
+    const installedEx = lineSupplyEx + installRate * orderM2;
+    const lCostEx = (parseFloat(prod.costExGST)||0) * orderM2;
+    const lineTotal = line.mode === "SI" ? installedEx * 1.1 : lineSupplyEx * 1.1;
+    supplyEx += lineSupplyEx;
+    if (line.mode === "SI") installEx += installRate * orderM2;
+    costEx += lCostEx;
+    const supplyMarginPct = lineSupplyEx > 0 ? (lineSupplyEx - lCostEx) / lineSupplyEx : 0;
+    const installedMarginPct = installedEx > 0 ? (installedEx - lCostEx - installRate*orderM2) / installedEx : 0;
+    return {
+      roomArea: line.room||"", productId: prod.id, productName: prod.name,
+      category: prod.category, installType: prod.installType,
+      areaM2: area, wasteFactor: waste, orderM2,
+      supplyExGST: lineSupplyEx, supplyIncGST: lineSupplyEx*1.1,
+      supplyMarginPct, installRateExGST: installRate,
+      installedExGST: installedEx, installedIncGST: installedEx*1.1,
+      installedMarginPct, mode: line.mode, lineTotal, sortOrder: idx+1
+    };
+  });
+
+  const extrasEx = STATE.extras.reduce((s,e) => s+(parseFloat(e.qty)||0)*(parseFloat(e.rate)||0),0);
+  const subEx = supplyEx + installEx + extrasEx;
+  const gst = subEx * 0.1;
+  const grandTotalIncGST = subEx + gst;
+  const margin = subEx > 0 ? (subEx - costEx) / subEx : 0;
+
+  const validDays = parseInt(STATE.settings.quoteValidity)||14;
+  const validDate = new Date(Date.now() + validDays*86400000).toISOString().split("T")[0];
+
+  const body = {
+    action: "saveQuote",
+    jobId: STATE.currentJob?.jobId || "",
+    clientName: client,
+    address: document.getElementById("q-address").value,
+    consultant: document.getElementById("q-consultant").value,
+    quoteDate: document.getElementById("q-date").value,
+    validUntil: validDate,
+    status: "Draft",
+    wasteFactor: waste,
+    supplyExGST: supplyEx,
+    supplyIncGST: supplyEx*1.1,
+    installedExGST: supplyEx + installEx,
+    installedIncGST: (supplyEx+installEx)*1.1,
+    grandTotalExGST: subEx,
+    gst, grandTotalIncGST, margin,
+    notes: "",
+    lines
+  };
+
+  try {
+    const res = await apiPost(body);
+    if (res.ok) {
+      toast("✓ Quote saved — " + res.data.quoteId);
+      STATE.quotes = (await api("getQuotes")).data || [];
+      renderQuotes();
+      document.getElementById("quotes-count").textContent = STATE.quotes.length;
+    } else {
+      toast("Error: " + (res.error||"Unknown"));
+    }
+  } catch(e) { toast("Save failed: " + e.message); }
+  hideLoader();
+}
+
+// ════════════════════════════════════════════════════════════
+// JOBS
+// ════════════════════════════════════════════════════════════
+function renderJobs() {
+  const el = document.getElementById("jobs-list");
+  if (!STATE.jobs.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">👤</div><h3>No jobs yet</h3><p>Create a new job to get started</p></div>`;
+    return;
+  }
+  el.innerHTML = STATE.jobs.map(j => `
+    <div class="job-card" onclick="openJob('${j.jobId}')">
+      <div class="job-avatar">${(j.clientName||"?")[0].toUpperCase()}</div>
+      <div class="job-info">
+        <div class="job-name">${esc(j.clientName||"Unknown")}</div>
+        <div class="job-addr">${esc(j.address||"")} ${j.consultant ? "· "+j.consultant : ""}</div>
+      </div>
+      <div class="job-meta">
+        <div class="job-status status-${(j.status||"lead").toLowerCase()}">${j.status||"Lead"}</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:4px">${fmtDate(j.createdAt)}</div>
+      </div>
+    </div>`).join("");
+}
+
+function openJob(jobId) {
+  const job = STATE.jobs.find(j => j.jobId === jobId);
+  if (!job) return;
+  STATE.currentJob = job;
+  document.getElementById("q-client").value    = job.clientName||"";
+  document.getElementById("q-phone").value     = job.clientPhone||"";
+  document.getElementById("q-email").value     = job.clientEmail||"";
+  document.getElementById("q-address").value   = job.address||"";
+  document.getElementById("q-consultant").value = job.consultant||"Bhavik";
+  showScreen("quote");
+  toast("📋 Job loaded: " + job.clientName);
+}
+
+function showNewJobModal() {
+  document.getElementById("modal-new-job").classList.add("open");
+}
+
+async function saveNewJob() {
+  const name = document.getElementById("nj-name").value.trim();
+  if (!name) { toast("Enter a client name"); return; }
+  showLoader("Saving job…");
+  try {
+    const res = await apiPost({
+      action: "saveJob",
+      clientName: name,
+      clientPhone: document.getElementById("nj-phone").value,
+      clientEmail: document.getElementById("nj-email").value,
+      address: document.getElementById("nj-address").value,
+      consultant: document.getElementById("nj-consultant").value,
+      status: document.getElementById("nj-status").value,
+      notes: document.getElementById("nj-notes").value,
+    });
+    if (res.ok) {
+      toast("✓ Job created — " + res.data.jobId);
+      closeModal("modal-new-job");
+      STATE.jobs = (await api("getJobs")).data || [];
+      renderJobs();
+      ["nj-name","nj-phone","nj-email","nj-address","nj-notes"].forEach(id => document.getElementById(id).value = "");
+    } else { toast("Error: " + res.error); }
+  } catch(e) { toast("Failed: " + e.message); }
+  hideLoader();
+}
+
+// ════════════════════════════════════════════════════════════
+// QUOTES LIST
+// ════════════════════════════════════════════════════════════
+function renderQuotes() {
+  const el = document.getElementById("quotes-list");
+  if (!STATE.quotes.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📄</div><h3>No quotes yet</h3><p>Build and save a quote to see it here</p></div>`;
+    return;
+  }
+  const sorted = [...STATE.quotes].sort((a,b) => b.createdAt > a.createdAt ? 1 : -1);
+  el.innerHTML = sorted.map(q => `
+    <div class="quote-card" onclick="loadQuote('${q.quoteId}')">
+      <div class="quote-id-badge">${q.quoteId?.slice(-8)||"QUOTE"}</div>
+      <div class="quote-info">
+        <div class="quote-client">${esc(q.clientName||"")}</div>
+        <div class="quote-addr">${esc(q.address||"")} · ${q.consultant||""}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="quote-amount">$${n(parseFloat(q.grandTotalIncGST)||0)}</div>
+        <div class="quote-date">${fmtDate(q.quoteDate)}</div>
+        <div class="job-status status-${(q.status||"draft").toLowerCase()}" style="margin-top:4px">${q.status||"Draft"}</div>
+      </div>
+    </div>`).join("");
+}
+
+async function loadQuote(quoteId) {
+  showLoader("Loading quote…");
+  const res = await api("getQuote", { quoteId });
+  hideLoader();
+  if (!res.ok || !res.data) { toast("Could not load quote"); return; }
+  const q = res.data;
+  document.getElementById("q-client").value    = q.clientName||"";
+  document.getElementById("q-address").value   = q.address||"";
+  document.getElementById("q-consultant").value = q.consultant||"Bhavik";
+  document.getElementById("q-date").value      = q.quoteDate||"";
+  // Restore lines from quote_lines
+  STATE.lines = (q.lines||[]).map(l => {
+    const prod = STATE.products.find(p => p.id === l.productId) || { 
+      id: l.productId, name: l.productName, category: l.category,
+      installType: l.installType, supplyExGST: l.supplyExGST / (l.orderM2||1),
+      costExGST: 0, installRateExGST: l.installRateExGST
+    };
+    return { id: Date.now() + Math.random(), productId: prod.id, productName: prod.name,
+             category: prod.category, installType: prod.installType,
+             areaM2: l.areaM2, room: l.roomArea, mode: l.mode||"SI",
+             customInstallRate: null, product: prod };
+  });
+  renderLines(); recalcTotals();
+  showScreen("quote");
+  toast("📄 Quote loaded");
+}
+
+// ════════════════════════════════════════════════════════════
+// PRODUCTS TABLE
+// ════════════════════════════════════════════════════════════
+let prodFilter = "all";
+function filterProducts(cat, btn) {
+  prodFilter = cat;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderProductsTable();
+}
+
+async function loadProducts(force=false) {
+  showLoader("Refreshing products…");
+  const res = await api("getProducts");
+  STATE.products = res.data || [];
+  renderProductsTable();
+  hideLoader();
+  toast("✓ Products refreshed");
+}
+
+function renderProductsTable() {
+  const el = document.getElementById("products-table-body");
+  const prods = prodFilter === "all" ? STATE.products : STATE.products.filter(p => p.category === prodFilter);
+  if (!prods.length) { el.innerHTML = `<div class="empty"><div class="empty-icon">📦</div><h3>No products</h3></div>`; return; }
+  el.innerHTML = `<table class="prod-table">
+    <thead><tr>
+      <th>Product</th><th>Category</th><th>Pack m²</th>
+      <th>Cost Ex</th><th>Supply Ex</th><th>Supply Markup</th>
+      <th>Install Rate</th><th>Installed Ex</th>
+    </tr></thead>
+    <tbody>${prods.map(p => `<tr>
+      <td><strong>${esc(p.name)}</strong><br><span style="font-size:11px;color:var(--ink3)">${esc(p.boardSize||"")}</span></td>
+      <td><span class="tag tag-${p.category.toLowerCase()}">${p.category}</span></td>
+      <td>${p.packM2||"—"}</td>
+      <td style="color:var(--navy);font-weight:600">$${n(p.costExGST)}</td>
+      <td style="font-weight:600">$${n(p.supplyExGST)}</td>
+      <td style="color:var(--green)">${p.costExGST && p.supplyExGST ? ((p.supplyExGST - p.costExGST)/p.supplyExGST*100).toFixed(1)+"%" : "—"}</td>
+      <td>$${n(p.installRateExGST)}/m²</td>
+      <td>$${n(p.installedExGST)}</td>
+    </tr>`).join("")}</tbody>
+  </table>`;
+}
+
+// ════════════════════════════════════════════════════════════
+// GHL SEARCH
+// ════════════════════════════════════════════════════════════
+function showGHLSearch() {
+  document.getElementById("modal-ghl").classList.add("open");
+  document.getElementById("ghl-search-input").value = "";
+  document.getElementById("ghl-results").innerHTML = "<div style='color:var(--ink3);font-size:13px;padding:10px'>Type to search GHL contacts…</div>";
+}
+
+let ghlTimer;
+function ghlSearch(q) {
+  clearTimeout(ghlTimer);
+  if (q.length < 2) return;
+  ghlTimer = setTimeout(async () => {
+    document.getElementById("ghl-results").innerHTML = "<div style='color:var(--ink3);font-size:13px;padding:10px'>Searching…</div>";
+    try {
+      const res = await api("searchGHL", { q });
+      const contacts = res.data?.contacts || [];
+      if (!contacts.length) {
+        document.getElementById("ghl-results").innerHTML = "<div style='color:var(--ink3);font-size:13px;padding:10px'>No contacts found</div>";
+        return;
+      }
+      document.getElementById("ghl-results").innerHTML = contacts.map(c => `
+        <div class="ghl-result-item" onclick="selectGHLContact('${esc(c.name)}','${esc(c.phone)}','${esc(c.email)}')">
+          <div class="ghl-name">${esc(c.name)}</div>
+          <div class="ghl-sub">${esc(c.phone)} · ${esc(c.email)}</div>
+        </div>`).join("");
+    } catch(e) {
+      document.getElementById("ghl-results").innerHTML = "<div style='color:var(--red);font-size:13px;padding:10px'>Error: " + e.message + "</div>";
+    }
+  }, 400);
+}
+
+function selectGHLContact(name, phone, email) {
+  document.getElementById("q-client").value = name;
+  document.getElementById("q-phone").value  = phone;
+  document.getElementById("q-email").value  = email;
+  closeModal("modal-ghl");
+  toast("✓ Contact loaded: " + name);
+}
+
+// ════════════════════════════════════════════════════════════
+// PUSH TO GHL
+// ════════════════════════════════════════════════════════════
+async function pushToGHL() {
+  toast("GHL push — save the quote first, then use GHL opportunity manually or set up pipeline IDs in Settings");
+}
+
+// ════════════════════════════════════════════════════════════
+// EXPORT
+// ════════════════════════════════════════════════════════════
+function exportQuote() {
+  const client  = document.getElementById("q-client").value || "Client";
+  const address = document.getElementById("q-address").value || "";
+  const date    = document.getElementById("q-date").value || new Date().toISOString().split("T")[0];
+  const consultant = document.getElementById("q-consultant").value;
+  const waste   = parseFloat(document.getElementById("q-waste").value);
+  const biz     = STATE.settings.businessName || "Stepfast Flooring";
+  const bizPh   = STATE.settings.businessPhone || "";
+  const bizEm   = STATE.settings.businessEmail || "";
+
+  let supplyEx = 0, installEx = 0;
+  const linesHtml = STATE.lines.map((line, i) => {
+    const prod = line.product;
+    const area = parseFloat(line.areaM2)||0;
+    const orderM2 = area*(1+waste);
+    const lineSupplyEx = orderM2*(parseFloat(prod.supplyExGST)||0);
+    const installRate = line.customInstallRate !== null ? parseFloat(line.customInstallRate) : (parseFloat(prod.installRateExGST)||0);
+    const installedEx = lineSupplyEx + installRate*orderM2;
+    if (line.mode==="SI") { supplyEx += lineSupplyEx; installEx += installRate*orderM2; }
+    else supplyEx += lineSupplyEx;
+    const total = line.mode==="SI" ? installedEx*1.1 : lineSupplyEx*1.1;
+    return `<tr>
+      <td style="padding:10px 12px;border-bottom:1px solid #dde3ec">${line.room||"Area "+(i+1)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #dde3ec"><strong>${esc(prod.name)}</strong><br><span style="font-size:11px;color:#8a9ab0">${prod.category} · ${area>0?area.toFixed(2)+"m²":""} + ${(waste*100).toFixed(0)}% waste</span></td>
+      <td style="padding:10px 12px;border-bottom:1px solid #dde3ec;text-align:center">${line.mode==="SI"?"Supply & Install":"Supply Only"}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #dde3ec;text-align:right;font-weight:700;color:#1a2e44">$${n(total)}</td>
+    </tr>`;
+  }).join("");
+
+  const extrasEx = STATE.extras.reduce((s,e) => s+(parseFloat(e.qty)||0)*(parseFloat(e.rate)||0),0);
+  const subEx = supplyEx + installEx + extrasEx;
+  const gst = subEx*0.1;
+  const total = subEx+gst;
+
+  const extrasHtml = STATE.extras.map(ex => `<tr>
+    <td colspan="2" style="padding:8px 12px;border-bottom:1px solid #dde3ec">${esc(ex.name||"Extra")} × ${ex.qty}</td>
+    <td style="padding:8px 12px;border-bottom:1px solid #dde3ec"></td>
+    <td style="padding:8px 12px;border-bottom:1px solid #dde3ec;text-align:right">$${n((parseFloat(ex.qty)||0)*(parseFloat(ex.rate)||0)*1.1)}</td>
+  </tr>`).join("");
+
+  const html = `
+    <div style="font-family:'DM Sans',sans-serif;max-width:680px;margin:0 auto">
+      <div style="background:#1a2e44;padding:28px 32px;border-radius:12px 12px 0 0;margin-bottom:0">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:26px;font-weight:700;color:#c8922a;font-family:'DM Serif Display',serif">${esc(biz)}</div>
+            <div style="color:#8a9ab0;font-size:12px;margin-top:2px">${esc(bizPh)} · ${esc(bizEm)}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="color:#c8922a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Quote</div>
+            <div style="color:#fff;font-size:13px">${date}</div>
+            <div style="color:#8a9ab0;font-size:12px">Consultant: ${esc(consultant)}</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:#f0e8d8;padding:16px 32px;border-left:4px solid #c8922a">
+        <div style="font-weight:600;font-size:16px;color:#1a2e44">${esc(client)}</div>
+        <div style="font-size:13px;color:#4a5568">${esc(address)}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;background:#fff">
+        <thead><tr style="background:#1a2e44">
+          <th style="padding:10px 12px;text-align:left;color:#c8922a;font-size:11px;font-weight:600;letter-spacing:.5px">AREA</th>
+          <th style="padding:10px 12px;text-align:left;color:#c8922a;font-size:11px;font-weight:600;letter-spacing:.5px">PRODUCT</th>
+          <th style="padding:10px 12px;text-align:center;color:#c8922a;font-size:11px;font-weight:600;letter-spacing:.5px">TYPE</th>
+          <th style="padding:10px 12px;text-align:right;color:#c8922a;font-size:11px;font-weight:600;letter-spacing:.5px">TOTAL INC GST</th>
+        </tr></thead>
+        <tbody>${linesHtml}${extrasHtml}</tbody>
+      </table>
+      <div style="background:#f5f5f5;padding:16px 24px;border-top:2px solid #dde3ec">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px">
+          <span style="color:#4a5568">Subtotal (Ex GST)</span><span style="font-weight:600">$${n(subEx)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:13px">
+          <span style="color:#4a5568">GST</span><span style="font-weight:600">$${n(gst)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 0;border-top:2px solid #1a2e44">
+          <span style="font-size:18px;font-weight:700;color:#1a2e44;font-family:'DM Serif Display',serif">TOTAL INC GST</span>
+          <span style="font-size:22px;font-weight:700;color:#c8922a;font-family:'DM Serif Display',serif">$${n(total)}</span>
+        </div>
+      </div>
+      <div style="background:#fff;padding:16px 24px;border-top:1px solid #dde3ec;font-size:11px;color:#8a9ab0">
+        Quote valid 14 days. Subject to Stepfast Flooring Terms & Conditions (SFF20241120.001). All prices include GST.
+      </div>
+    </div>`;
+
+  document.getElementById("export-content").innerHTML = html;
+  document.getElementById("modal-export").classList.add("open");
+}
+
+function copyExport() {
+  const text = document.getElementById("export-content").innerText;
+  navigator.clipboard.writeText(text).then(() => toast("📋 Copied to clipboard"));
+}
+
+function printExport() {
+  const win = window.open("","_blank");
+  win.document.write(`<!DOCTYPE html><html><head><title>Quote</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>body{margin:20px;font-family:'DM Sans',sans-serif;}@media print{body{margin:0;}}</style>
+    </head><body>${document.getElementById("export-content").innerHTML}</body></html>`);
+  win.document.close();
+  setTimeout(() => win.print(), 800);
+}
+
+function clearQuote() {
+  if (!confirm("Clear all lines and start fresh?")) return;
+  STATE.lines = [];
+  STATE.extras = [];
+  STATE.currentJob = null;
+  ["q-client","q-phone","q-email","q-address"].forEach(id => document.getElementById(id).value = "");
+  renderLines(); renderExtras(); recalcTotals();
+  toast("Quote cleared");
+}
+
+// ════════════════════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════════════════════
+function saveWebhook() {
+  const url = document.getElementById("setting-webhook").value.trim();
+  localStorage.setItem("stepfast_webhook", url);
+  setApiStatus("checking");
+  api("ping").then(r => {
+    if (r.ok) { setApiStatus(true); toast("✓ Connected — " + r.data.version); }
+    else setApiStatus(false, r.error);
+  }).catch(e => setApiStatus(false, e.message));
+}
+
+function setApiStatus(ok, msg="") {
+  const el = document.getElementById("api-status-display");
+  if (ok === "checking") { el.className = "api-status checking"; el.textContent = "⏳ Checking…"; return; }
+  if (ok) { el.className = "api-status ok"; el.textContent = "✓ Backend connected — data live from Google Sheet"; }
+  else { el.className = "api-status err"; el.textContent = "✗ Cannot reach backend" + (msg ? ": " + msg : ""); }
+}
+
+async function saveBusinessSettings() {
+  showLoader("Saving…");
+  try {
+    await Promise.all([
+      apiPost({ action:"saveSetting", key:"businessName",  value: document.getElementById("s-bizname").value }),
+      apiPost({ action:"saveSetting", key:"businessPhone", value: document.getElementById("s-phone").value }),
+      apiPost({ action:"saveSetting", key:"businessEmail", value: document.getElementById("s-email").value }),
+      apiPost({ action:"saveSetting", key:"businessAddress",value: document.getElementById("s-address").value }),
+    ]);
+    toast("✓ Settings saved");
+  } catch(e) { toast("Error: " + e.message); }
+  hideLoader();
+}
+
+// ════════════════════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════════════════════
+function n(v) { return (parseFloat(v)||0).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function fmtDate(d) { if (!d) return ""; try { return new Date(d).toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"}); } catch{ return d; } }
+
+function toast(msg, dur=2800) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), dur);
+}
+function showLoader(msg="Loading…") {
+  document.getElementById("loader-msg").textContent = msg;
+  document.getElementById("loader").classList.add("show");
+}
+function hideLoader() { document.getElementById("loader").classList.remove("show"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+// Waste change → recalc
+document.getElementById("q-waste").addEventListener("change", () => { renderLines(); recalcTotals(); });
+</script>
+</body>
+</html>
